@@ -73,7 +73,7 @@ namespace global {
         while (true) {
             update_sensors();
             position_tracking();
-            pros::delay(10);
+            pros::delay(3);
         }
     }
 }
