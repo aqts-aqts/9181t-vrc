@@ -114,7 +114,7 @@ namespace global {
         if (dx == 0 && dy == 0)
             return;
 
-        double angle = 270 - atan2(dy, dx) * 180 / M_PI;
+        double angle = 90 - atan2(dy, dx) * 180 / M_PI;
 
         while (angle - current_rotation > 180)
             angle -= 360;
@@ -127,22 +127,18 @@ namespace global {
     void turn_to_face_back(double target_x, double target_y, double max_power) {
         double dx = target_x - x;
         double dy = target_y - y;
-        double target_distance = sqrt(pow(dx, 2) + pow(dy, 2));
-        double bearing_angle = fabs(atan(dy / target_distance) * 180 / M_PI);
-        if (dy >= 0 && dx >= 0)
-            bearing_angle = bearing_angle;
-        else if (dy >= 0 && dx < 0)
-            bearing_angle = 180 - bearing_angle;
-        else if (dy < 0 && dx < 0)
-            bearing_angle = 180 + bearing_angle;
-        else
-            bearing_angle = 360 - bearing_angle;
+        
+        if (dx == 0 && dy == 0)
+            return;
 
-        double bearing_with_inertial = 270 - bearing_angle;
-        double delta_heading = -floor((bearing_with_inertial - current_rotation + 180) / 360);
-        double new_heading = bearing_with_inertial + delta_heading * 360;
+        double angle = 270 - atan2(dy, dx) * 180 / M_PI;
+
+        while (angle - current_rotation > 180)
+            angle -= 360;
+        while (angle - current_rotation < -180)
+            angle += 360;
     
-        set_turn_target(new_heading, max_power);
+        set_turn_target(angle, max_power);
     }
 
     void set_drive_power(double left_power, double right_power) {
@@ -195,7 +191,7 @@ namespace global {
             right_error_start = NAN;
         }
     }
-    
+
     void imu_pid_loop() {
         if (std::isnan(imu_target))
             return;

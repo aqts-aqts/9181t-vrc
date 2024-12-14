@@ -5,4 +5,5 @@
 #include "device.h"
 #include "autonomous.h"
 #include "drive.h"
+#include "controller.h"
 #endif

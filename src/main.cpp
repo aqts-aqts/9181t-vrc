@@ -51,7 +51,7 @@ void test(){
 	set_drive_constants(0.2, 0.5, 1000000, 20, 10, 50);
 	set_turn_constants(4.2, 0.01, 40, 45, 5000, 2, 1, 50);
 	
-	turn_to_face(-10, 0, 100);
+	turn_to_face(10, 0, 100);
 }
 
 /**
@@ -123,14 +123,6 @@ void opcontrol() {
 			intake_front.move(0);
 			intake_back.move(0);
 		}
-
-		/*if (master.get_digital(DIGITAL_L2)) {
-			if (pros::millis() - last_wall_stake_change > WALL_STAKE_COOLDOWN) {
-				wall_stake_pos = (wall_stake_pos == 0) ? 1720: 0;
-				wall_stake_motor.move_absolute(wall_stake_pos, WALL_STAKE_RPM);
-				last_wall_stake_change = pros::millis();
-			}
-		}*/
 
 		if (master.get_digital(DIGITAL_L2)) {
 			wall_stake_held = true;
