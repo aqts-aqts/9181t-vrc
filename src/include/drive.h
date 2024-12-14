@@ -8,19 +8,20 @@
 #define LEFT_CURVE_SCALE 0
 #define RIGHT_CURVE_SCALE 2.1
 
-#define WHEEL_DIAMETER 3.25
+#define WHEEL_DIAMETER 2.75
 #define DRIVE_CARTRIDGE_RPM 600
-#define DRIVE_RATIO 1.6667 // 60:36
+#define DRIVE_RATIO 1 // 36:36
 
 #define CLAMP_COOLDOWN 600
-#define WALL_STAKE_COOLDOWN 600
+#define WALL_STAKE_COOLDOWN 1200
 
-#define WALL_STAKE_RPM 100
+#define WALL_STAKE_RPM 200
 
 #define INTAKE_VOLTS 127
 #define DOINKER_VOLTS 80
 
-#include "main.h"
+#define WALLSTAKE_VOLTS 127
+
 namespace global {
     extern void drive();
     extern double apply_threshold(double input);

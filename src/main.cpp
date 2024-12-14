@@ -24,6 +24,9 @@ void initialize() {
 	imu1.tare();
 	imu2.reset();
 	imu2.tare();
+
+	horizontal_encoder.reset_position();
+	vertical_encoder.reset_position();
 }
 
 /**
@@ -108,13 +111,13 @@ void awp_blue() {
 */
 
 void test(){
-	set_turn_target(90, 100);
-	wait_pid();
-
-	set_turn_target(0, 100);
-	wait_pid();
+	set_drive_constants(0.2, 0.5, 1000000, 20, 10, 50);
+	set_turn_constants(4.2, 0.01, 40, 45, 5000, 2, 1, 50);
+	
+	turn_to_face(-10, 0, 100);
 }
 
+/*
 void awp_right() {
 	set_drive_target(-32, 70);
 	wait_pid();
@@ -243,7 +246,6 @@ void awp_left() {
 	//intake.move(0);
 }
 
-/*
 void awp_red() {
 	set_drive_target(-33, 70);
 	wait_pid();
@@ -304,12 +306,13 @@ void awp_red() {
 
 	set_drive_target(8, 100);
 	wait_pid();
-}*/
+}
 
 void go_straight() {
 	set_drive_target(20, 100);
 	wait_pid();
 }
+*/
 
 /**
  * Runs the user autonomous code. This function will be started in its own task
@@ -323,13 +326,13 @@ void go_straight() {
  * from where it left off.
  */
 void autonomous() {
-	left_drive.set_brake_mode_all(pros::E_MOTOR_BRAKE_BRAKE);
-    right_drive.set_brake_mode_all(pros::E_MOTOR_BRAKE_BRAKE);
+	left_drive.set_brake_mode_all(pros::E_MOTOR_BRAKE_HOLD);
+    right_drive.set_brake_mode_all(pros::E_MOTOR_BRAKE_HOLD);
 
 	pros::Task pid_task(pid_thread);
 	pros::Task odom_task(odom_thread);
 
-	awp_left();
+	test();
 }
 
 /**
@@ -346,23 +349,26 @@ void autonomous() {
  * task, not resume it from where it left off.
  */
 void opcontrol() {
+	pros::Task odom_task(odom_thread);
+
 	left_drive.set_brake_mode_all(pros::E_MOTOR_BRAKE_BRAKE);
     right_drive.set_brake_mode_all(pros::E_MOTOR_BRAKE_BRAKE);
 
-	bool clamp_state = false;
+	bool clamp_state = true;
 	int last_clamp_change = 0;
 
-	int wall_stake_pos = 0;
-	int last_wall_stake_change = 0;
+	bool wall_stake_held = false;
 
 	while (true) {
+		pros::screen::print(TEXT_MEDIUM, 1, "X: %f", x);
+		pros::screen::print(TEXT_MEDIUM, 2, "Y: %f", y);
+		pros::screen::print(TEXT_MEDIUM, 3, "Rotation: %.2f", current_rotation);
 		drive();
 
 		if (master.get_digital(DIGITAL_L1)) { // clamp
 			if (pros::millis() - last_clamp_change > CLAMP_COOLDOWN) {
+				clamp.set_value(clamp_state);
 				clamp_state = !clamp_state;
-				clamp1.set_value(clamp_state);
-				clamp2.set_value(clamp_state);
 				last_clamp_change = pros::millis();
 			}
 		}
@@ -378,12 +384,21 @@ void opcontrol() {
 			intake_back.move(0);
 		}
 
-		if (master.get_digital(DIGITAL_L2)) {
+		/*if (master.get_digital(DIGITAL_L2)) {
 			if (pros::millis() - last_wall_stake_change > WALL_STAKE_COOLDOWN) {
-				wall_stake_pos = (wall_stake_pos == 0) ? -420: 0;
+				wall_stake_pos = (wall_stake_pos == 0) ? 1720: 0;
 				wall_stake_motor.move_absolute(wall_stake_pos, WALL_STAKE_RPM);
 				last_wall_stake_change = pros::millis();
 			}
+		}*/
+
+		if (master.get_digital(DIGITAL_L2)) {
+			wall_stake_held = true;
+			wall_stake_motor.move(WALLSTAKE_VOLTS);
+		} else if (wall_stake_held) {
+			wall_stake_held = false;
+			wall_stake_motor.move(0);
+			wall_stake_motor.move_absolute(0, WALL_STAKE_RPM);
 		}
 
 		pros::delay(10);

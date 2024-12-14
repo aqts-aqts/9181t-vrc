@@ -1,9 +1,12 @@
 #pragma once
-#include "pros/adi.h"
+#include "pros/adi.hpp"
+#include "pros/imu.hpp"
+#include "pros/motor_group.hpp"
+#include "pros/motors.hpp"
+#include "pros/rotation.hpp"
 #ifndef devices_h
 #define devices_h
 
-#include "main.h"
 namespace global {
     // motors
     extern pros::Motor left_front;
@@ -33,7 +36,6 @@ namespace global {
     extern pros::IMU imu1;
     extern pros::IMU imu2;
 
-    extern pros::adi::DigitalOut clamp1;
-    extern pros::adi::DigitalOut clamp2;
+    extern pros::adi::DigitalOut clamp;
 }
 #endif

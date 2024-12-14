@@ -1,6 +1,4 @@
-#include "include/device.h"
 #include "main.h"
-#include "pros/misc.h"
 using namespace global;
 
 namespace global {
@@ -28,6 +26,5 @@ namespace global {
     pros::IMU imu1(9);
     pros::IMU imu2(20);
 
-    pros::adi::DigitalOut clamp1(1);
-    pros::adi::DigitalOut clamp2(8);
+    pros::adi::DigitalOut clamp(8);
 }
