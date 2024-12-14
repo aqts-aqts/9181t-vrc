@@ -52,19 +52,6 @@ namespace global {
     double left_move_start = 0;
     double right_move_start = 0;
     double turn_move_start = 0;
-
-    // new stuff
-    double drive_kP = 0;
-    double drive_kD = 0;
-
-    double drive_error = 0;
-    double drive_power = 0;
-
-    double prev_drive_error = 0;
-    double drive_target = NAN;
-
-    double drive_move_start = 0;
-    double drive_error_start = 0;
     
     void set_drive_constants(double p, double d, double timeout, double big_error, double small_error, double error_timeout) {
         left_drive_kP = p;
@@ -79,16 +66,6 @@ namespace global {
         drive_small_error = (small_error != -1) ? small_error: drive_small_error;
         drive_error_timeout = (error_timeout != -1) ? error_timeout: drive_error_timeout;
     }
-
-    /*void set_drive_constants(double p, double d, double timeout, double big_error, double small_error, double error_timeout) {
-        drive_kP = p;
-        drive_kD = d;
-
-        drive_timeout = (timeout != -1) ? timeout: drive_timeout;
-        drive_big_error = (big_error != -1) ? big_error: drive_big_error;
-        drive_small_error = (small_error != -1) ? small_error: drive_small_error;
-        drive_error_timeout = (error_timeout != -1) ? error_timeout: drive_error_timeout;
-    }*/
 
     void set_turn_constants(double p, double i, double d, double s_i, double timeout, double big_error, double small_error, double error_timeout) {
         turn_kP = p;
@@ -116,19 +93,6 @@ namespace global {
         prev_left_error = left_target - left_drive.get_position();
         prev_right_error = right_target - right_drive.get_position();
     }
-
-    /*void set_drive_target(double distance, double power) {
-        distance *= 360.0 / (wheel_diameter * M_PI);
-        left_drive.tare_position_all();
-        right_drive.tare_position_all();
-        drive_target = distance;
-        max_power = std::fabs(power);
-
-        current_angle = (imu1.get_rotation() + imu2.get_rotation()) / 2;
-        drive_move_start = pros::millis();
-
-        prev_drive_error = drive_target - ((left_drive.get_position() + right_drive.get_position()) / 2);
-    }*/
 
     void set_turn_target(double angle, double power) {
         imu_target = angle;
@@ -231,33 +195,7 @@ namespace global {
             right_error_start = NAN;
         }
     }
-
-    /*void drive_pid_loop() {
-        if (std::isnan(drive_target) || !std::isnan(imu_target)) // turning takes priority
-            return;
-
-        drive_error = drive_target - ((left_drive.get_position() + right_drive.get_position()) / 2);
-        drive_power = drive_error * drive_kP + (drive_error - prev_drive_error) * drive_kD;
-        drive_power = std::clamp(drive_power, -max_power, max_power);
-        set_drive_power(left_power, right_power);
-        prev_drive_error = drive_error;
-
-        if (std::fabs(drive_error) < 20 || pros::millis() - drive_move_start > drive_timeout) { // 20 ticks of error
-            drive_error_start = (std::isnan(drive_error_start)) ? pros::millis(): drive_error_start;
-            if (pros::millis() - drive_error_start > drive_error_timeout || pros::millis() - drive_move_start > drive_timeout) {
-                drive_target = NAN;
-                drive_error_start = NAN;
-                set_drive_power(0, 0);
-            } else if (std::fabs(right_error) < drive_small_error) {
-                drive_target = NAN;
-                drive_error_start = NAN;
-                set_drive_power(0, 0);
-            }
-        } else {
-            drive_error_start = NAN;
-        }
-    }*/
-
+    
     void imu_pid_loop() {
         if (std::isnan(imu_target))
             return;
