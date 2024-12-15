@@ -18,7 +18,7 @@ void on_center_button() {}
 void initialize() {
 	intake_front.set_brake_mode(pros::E_MOTOR_BRAKE_HOLD);
 	intake_back.set_brake_mode(pros::E_MOTOR_BRAKE_HOLD);
-	wall_stake_motor.set_brake_mode(pros::E_MOTOR_BRAKE_HOLD);
+	wall_stake_motor.set_brake_mode(pros::E_MOTOR_BRAKE_COAST);
 
 	imu1.reset();
 	imu1.tare();
@@ -47,12 +47,53 @@ void disabled() {}
  */
 void competition_initialize() {}
 
-void test(){
-	set_drive_constants(0.2, 0.5, 1000000, 20, 10, 50);
-	set_turn_constants(4.2, 0.01, 40, 45, 5000, 2, 1, 50);
+void auto1() {
+	// dont change these unless you know what youre doing (i ask you or chatgpt)
+	// these control how the robot drives, paste into chatgpt if something is off about it
+	// right click the "set_drive_constants" or "set_turn_constants" part, click "go to definition"
+	// and then copy the function there (starting from "void" to the last "}") into chatgpt as well
+	set_drive_constants(0.2, 0.5, 10000, 20, 10, 50);
+	set_turn_constants(4.2, 0.01, 40, 45, 2500, 2, 1, 50);
 	
-	turn_to_face(10, 0, 100);
+	// functions to use for autos
+	// note: you have to use wait_pid() after:
+	// set_drive_target or set_turn_target or move_to or turn_to_face or turn_to_face_back
+	// or else the robot wont wait for the movement to be done before continuing
+	// power is from 0-127, ~100 is ideal so the robot can correct itself
+	// distance in inches, angle in degrees, x and y in inches
+	// get rid of the // in front of the function you want to use
+
+	// set_drive_target(distance, power) - drive a certain distance at a certain power
+	// set_turn_target(angle, power) - turn a certain angle at a certain power
+	// move_to(x, y, power) - move to a certain x and y position at a certain power (WONT TURN BEFORE)
+	// turn_to_face(x, y, power) - turn to face a certain x and y position at a certain power
+	// turn_to_face_back(x, y, power) - turn to face with the back a certain x and y position at a certain power
+	// set_drive_power(left_power, right_power) - set the left and right drive power to a certain value (no pid/odom)
+	// wait_pid() - wait until the robot has reached the target
+	// wait_drive(distance) - wait until the robot has traveled distance (WONT WAIT FOR THE REST OF THE MOVEMENT)
+	// wait_turn(angle) - wait until the robot has turned angle (WONT WAIT FOR THE REST OF THE MOVEMENT)
+
+	// this point important
+	// when using move_to ALWAYS use turn_to_face first if the direction isnt already faced
+	// move_to DOESNT TURN THE ROBOT IT JUST MOVES THE DISTANCE BETWEEN THE ROBOT AND THE POINT
+	// WITHOUT LOOKING WHICH WAY ITS GOING
+
+	// if you want to make another auto just move the code of the auto you just made
+	// to auto2, auto3, or auto4 inside the function (in between the { and })
+	// so like:
+	// void auto2() {
+	//     set_drive_target(10, 100);
+	//     wait_pid();
+	// }
+	// but keep set_drive_constants and set_turn_constants at the top of the function
+	// ill deal with getting which auto to run tomorrow
 }
+
+void auto2() {}
+
+void auto3() {}
+
+void auto4() {}
 
 /**
  * Runs the user autonomous code. This function will be started in its own task
@@ -72,7 +113,7 @@ void autonomous() {
 	pros::Task pid_task(pid_thread);
 	pros::Task odom_task(odom_thread);
 
-	test();
+	auto1();
 }
 
 /**
@@ -102,7 +143,9 @@ void opcontrol() {
 	while (true) {
 		pros::screen::print(TEXT_MEDIUM, 1, "X: %f", x);
 		pros::screen::print(TEXT_MEDIUM, 2, "Y: %f", y);
-		pros::screen::print(TEXT_MEDIUM, 3, "Rotation: %.2f", current_rotation);
+		pros::screen::print(TEXT_MEDIUM, 3, "Rotation: %f", current_rotation);
+		pros::screen::print(TEXT_MEDIUM, 4, "XTrack: %f", horizontal_encoder.get_position());
+		pros::screen::print(TEXT_MEDIUM, 5, "YTrack: %f", vertical_encoder.get_position());
 		drive();
 
 		if (master.get_digital(DIGITAL_L1)) { // clamp

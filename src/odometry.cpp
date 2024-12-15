@@ -56,7 +56,7 @@ namespace global {
         } else { // didn't turn, don't divide by 0
             delta_x = delta_x_tracking;
             delta_y = delta_y_tracking;
-        }
+        }   
 
         actual_x_change = cos(prev_rotation_rad) * delta_x + sin(prev_rotation_rad) * delta_y;
         actual_y_change = -sin(prev_rotation_rad) * delta_x + cos(prev_rotation_rad) * delta_y;

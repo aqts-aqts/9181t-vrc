@@ -10,6 +10,12 @@
 #define imu_drift 360 // the amount of degrees imu registers after a full turn
 #define x_offset 3.2 // the perpendicular distance between x tracking wheel and tracking center
 #define y_offset 0.8 // the perpendicular distance between y tracking wheel and tracking center
+/*
+for tuning: spin the robot clockwise, then use the formula: 
+x_offset = ((degrees of x tracking wheel) / 360 * 2.75 * pi) / ((inertial heading degrees) / 180 * pi)
+          = (x_tracking in inches) / (inertial in radians)
+same for y_offset, but replace x with y
+*/
 
 namespace global {
     // pid constants
@@ -59,8 +65,5 @@ namespace global {
     extern void odom_thread();
     extern void update_sensors();
     extern void position_tracking();
-
-    // autons
-    extern void auto1();
 }
 #endif
