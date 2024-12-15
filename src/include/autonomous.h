@@ -42,7 +42,9 @@ namespace global {
     extern void wait_drive(double distance); // wait until drive has traveled a certain distance
     extern void wait_turn(double angle); // wait until turn has turned a certain angle
     extern void move_to(double target_x, double target_y, double max_power);
+    extern void move_to_back(double target_x, double target_y, double max_power);
     extern void turn_to_face(double target_x, double target_y, double max_power);
+    extern void turn_to_face_back(double target_x, double target_y, double max_power);
     
     // pid threads
     extern void pid_thread();

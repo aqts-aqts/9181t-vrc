@@ -107,6 +107,11 @@ namespace global {
         set_drive_target(target_distance, max_power);
     }
 
+    void move_to_back(double target_x, double target_y, double max_power) {
+        double target_distance = sqrt(pow(target_x - x, 2) + pow(target_y - y, 2));
+        set_drive_target(-target_distance, max_power);
+    }
+
     void turn_to_face(double target_x, double target_y, double max_power) {
         double dx = target_x - x;
         double dy = target_y - y;
