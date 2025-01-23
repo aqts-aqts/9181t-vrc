@@ -6,16 +6,12 @@
 #define heading_kP 1
 
 // odom constants
-#define wheel_diameter 3.25
-#define imu_drift 360 // the amount of degrees imu registers after a full turn
-#define x_offset 3.2 // the perpendicular distance between x tracking wheel and tracking center
-#define y_offset 0.8 // the perpendicular distance between y tracking wheel and tracking center
-/*
-for tuning: spin the robot clockwise, then use the formula: 
-x_offset = ((degrees of x tracking wheel) / 360 * 2.75 * pi) / ((inertial heading degrees) / 180 * pi)
-          = (x_tracking in inches) / (inertial in radians)
-same for y_offset, but replace x with y
-*/
+#define wheel_diameter 2.75
+#define x_offset -2.0 // calculated: -2.28727
+ // the perpendicular distance between x tracking wheel and tracking center
+#define y_offset 0.60 // calculated: 0.190666
+ // the perpendicular distance between y tracking wheel and tracking center
+
 
 namespace global {
     // pid constants
@@ -30,6 +26,8 @@ namespace global {
 
     extern double left_drive_kP, left_drive_kD, right_drive_kP, right_drive_kD;
     extern double turn_kP, turn_kD, turn_kI;
+
+    extern bool pid_enabled;
 
     // pid controls
     extern void set_drive_constants(double p, double d, double timeout = -1, double big_error = -1, double small_error = -1, double error_timeout = -1);

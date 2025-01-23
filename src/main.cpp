@@ -1,4 +1,5 @@
 #include "main.h"
+#include "pros/misc.h"
 using namespace global;
 
 /**
@@ -18,7 +19,7 @@ void on_center_button() {}
 void initialize() {
 	intake_front.set_brake_mode(pros::E_MOTOR_BRAKE_HOLD);
 	intake_back.set_brake_mode(pros::E_MOTOR_BRAKE_HOLD);
-	wall_stake_motor.set_brake_mode(pros::E_MOTOR_BRAKE_COAST);
+	wall_stake_motor.set_brake_mode(pros::E_MOTOR_BRAKE_HOLD);
 
 	imu1.reset();
 	imu1.tare();
@@ -63,6 +64,54 @@ void auto1() {
 	// distance in inches, angle in degrees, x and y in inches
 	// get rid of the // in front of the function you want to use
 
+	move_to_back(0, 12, 100);
+	wait_pid();
+	set_turn_target(-90, 80);
+	wait_pid();
+	set_drive_target(-6, 80);
+	wait_pid();
+	
+	
+	intake_front.move(100);
+	intake_back.move(100);
+	
+	pros::delay(700);
+
+	intake_front.move(0);
+	intake_back.move(0);
+	wait_pid();
+	set_drive_target(6, 100);
+	wait_pid();
+	set_turn_target(-232, 80);
+	wait_pid();
+	set_drive_target(-34, 60);
+	wait_pid();
+	
+	pros::delay(300);
+	clamp.set_value(true);
+	pros::delay(650);
+
+	wait_pid();
+	set_turn_target(-10, 80);
+	wait_pid();
+	intake_front.move(100);
+	intake_back.move(100);
+	set_drive_target(28, 100);
+	pros::delay(2000);
+
+
+	intake_front.move(0);
+	intake_back.move(0);
+	wait_pid();
+	set_turn_target(15, 80);
+	wait_pid();
+
+	
+	set_drive_target(-36, 100);
+	wait_pid();
+
+
+
 	// set_drive_target(distance, power) - drive a certain distance at a certain power
 	// set_turn_target(angle, power) - turn a certain angle at a certain power
 	// move_to(x, y, power) - move to a certain x and y position at a certain power (WONT TURN BEFORE)
@@ -89,11 +138,447 @@ void auto1() {
 	// ill deal with getting which auto to run tomorrow
 }
 
-void auto2() {}
+void auto2() {
 
-void auto3() {}
+	set_drive_constants(0.2, 0.5, 10000, 20, 10, 50);
+	set_turn_constants(4.2, 0.01, 40, 45, 2500, 2, 1, 50);
 
-void auto4() {}
+	set_drive_target(-11.5, 100);
+	wait_pid();
+	set_turn_target(90, 100);
+	wait_pid();
+	set_drive_target(-7, 110);
+	wait_pid();
+
+	intake_front.move(110);
+	intake_back.move(110);
+	
+	pros::delay(800);
+	intake_front.move(0);
+	intake_back.move(0);
+	wait_pid();
+	set_drive_target(7, 110);
+
+	wait_pid();
+	set_turn_target(232, 80);
+	wait_pid();
+	set_drive_target(-36, 110);
+	wait_pid();
+	pros::delay(300);
+	clamp.set_value(true);
+	pros::delay(650);
+	wait_pid();
+	set_turn_target(0, 100);
+	wait_pid();
+	intake_front.move(100);
+	intake_back.move(100);
+	set_drive_target(28, 110);
+	pros::delay(2000);
+	intake_front.move(0);
+	intake_back.move(0);
+	wait_pid();
+	intake_front.move(100);
+	intake_back.move(100);
+	set_turn_target(74, 100);
+	wait_pid();
+	set_drive_target(8, 110);
+	wait_pid();
+
+	
+
+
+}
+
+void auto3() {
+
+	set_drive_constants(0.2, 0.5, 10000, 20, 10, 50);
+	set_turn_constants(4.2, 0.01, 40, 45, 2500, 2, 1, 50);
+	
+	// functions to use for autos
+	// note: you have to use wait_pid() after:
+	// set_drive_target or set_turn_target or move_to or turn_to_face or turn_to_face_back
+	// or else the robot wont wait for the movement to be done before continuing
+	// power is from 0-127, ~100 is ideal so the robot can correct itself
+	// distance in inches, angle in degrees, x and y in inches
+	// get rid of the // in front of the function you want to use
+
+	move_to_back(0, 12, 100);
+	wait_pid();
+	set_turn_target(90, 80);
+	wait_pid();
+	set_drive_target(-5.7, 80);
+	wait_pid();
+	
+	
+	intake_front.move(100);
+	intake_back.move(100);
+	
+	pros::delay(700);
+
+	intake_front.move(0);
+	intake_back.move(0);
+	wait_pid();
+	set_drive_target(5.7, 100);
+	wait_pid();
+	set_turn_target(232, 80);
+	wait_pid();
+	set_drive_target(-34, 60);
+	wait_pid();
+	
+	pros::delay(300);
+	clamp.set_value(true);
+	pros::delay(650);
+
+	wait_pid();
+	set_turn_target(10, 80);
+	wait_pid();
+	intake_front.move(100);
+	intake_back.move(100);
+	set_drive_target(28, 100);
+	pros::delay(2500);
+
+
+	intake_front.move(0);
+	intake_back.move(0);
+	wait_pid();
+	set_turn_target(-15, 80);
+	wait_pid();
+
+	
+	set_drive_target(-33, 100);
+	wait_pid();
+
+}
+
+void auto4() {
+	set_drive_constants(0.2, 0.5, 10000, 20, 10, 50);
+	set_turn_constants(4.2, 0.01, 40, 45, 2500, 2, 1, 50);
+
+	set_drive_target(-11.5, 100);
+	wait_pid();
+	set_turn_target(-90, 100);
+	wait_pid();
+	set_drive_target(-5.7, 90);
+	wait_pid();
+
+	intake_front.move(110);
+	intake_back.move(110);
+	
+	pros::delay(800);
+	intake_front.move(0);
+	intake_back.move(0);
+	wait_pid();
+	set_drive_target(5.7, 90);
+
+	wait_pid();
+	set_turn_target(-232, 80);
+	wait_pid();
+	set_drive_target(-36, 80);
+	wait_pid();
+
+	pros::delay(300);
+	clamp.set_value(true);
+	pros::delay(650);
+	wait_pid();
+
+	set_turn_target(0, 100);
+	wait_pid();
+	intake_front.move(100);
+	intake_back.move(100);
+	set_drive_target(28, 110);
+	pros::delay(2000);
+	intake_front.move(0);
+	intake_back.move(0);
+	wait_pid();
+	intake_front.move(100);
+	intake_back.move(100);
+	set_turn_target(-85, 100);
+	wait_pid();
+	set_drive_target(12, 110);
+	wait_pid();
+}
+
+
+
+void skills_auto(){
+	
+	set_drive_constants(0.2, 0.5, 10000, 20, 10, 50);
+	set_turn_constants(4.2, 0.01, 40, 45, 2500, 2, 1, 50);
+	intake_front.move(127);
+	intake_back.move(127);
+	
+	pros::delay(500);
+	intake_front.move(0);
+	intake_back.move(0);
+
+	set_drive_target(11, 100);
+	wait_pid();
+	set_turn_target(-90, 100);
+	wait_pid();
+	set_drive_target(-19, 75);
+	wait_pid();
+	clamp.set_value(true);
+	pros::delay(500);
+
+	set_turn_target(5, 100);
+	wait_pid();
+
+	intake_front.move(95);
+	intake_back.move(95);
+	set_drive_target(26, 120);
+
+	wait_pid();
+	pros::delay(500);
+
+	set_turn_target(-55, 100);
+	wait_pid();
+
+	set_drive_target(30, 110);
+	wait_pid();
+
+	set_turn_target(45, 100);
+	wait_pid();
+
+	set_drive_target(37, 110);
+	wait_pid();
+	
+	//// THIS IS WALL STSKE so play around with limit switch
+	//spin till limits
+	/*
+	intake_front.move(0);
+	intake_back.move(0);
+
+	wall_stake_motor.move(100);
+	pros::delay(500);
+	//this should move for 270 motor degrees idk how to use pros for this and im in a rush so I just have it in time. 
+	wall_stake_motor.move(0); */
+
+	set_turn_target(90, 100);
+	wait_pid();
+
+
+	set_drive_target(28,80);
+	wait_pid();
+	
+	set_turn_target(180, 100);
+	wait_pid();
+	set_drive_target(24, 110);
+	wait_pid();
+	set_turn_target(90, 100);
+	wait_pid();
+	set_drive_target(6, 110);
+	wait_pid();	
+
+	//set_drive_target(-4, 110);
+	//wait_pid();
+	
+	
+	//THiS IS TO SCORE WALLSTAKE
+
+	set_turn_target(0, 100);
+	wait_pid();
+	//intake_front.move(127);
+	//intake_back.move(127);
+
+	set_drive_target(45, 110);
+	wait_pid();
+	set_turn_target(-45, 100);
+	wait_pid();
+	set_drive_target(14, 110);
+	wait_pid();
+
+	set_turn_target(-120, 100);
+	wait_pid();
+	set_drive_target(4, 110);
+	wait_pid();
+	set_drive_target(-3, 110);
+	wait_pid();
+	//clamp.set_value(false);
+
+	set_drive_target(22, 110);
+	wait_pid();
+	set_turn_target(90, 100);
+	wait_pid();
+	set_drive_target(-31, 110);
+	wait_pid();
+	clamp.set_value(true);
+	set_turn_target(-135, 100);
+	wait_pid();
+	set_drive_target(30, 110);
+	wait_pid();
+	set_turn_target(-90, 100);
+	wait_pid();
+	set_drive_target(21, 110);
+	wait_pid();
+	set_turn_target(-135, 100);
+	wait_pid();
+	set_drive_target(23, 110);
+	wait_pid();
+	set_turn_target(-190, 100);
+	wait_pid();
+
+
+
+}
+void LeftSoloAWP(){
+
+	set_drive_constants(0.2, 0.5, 2000, 20, 10, 50);
+	set_turn_constants(4.2, 0.01, 40, 45, 1000, 2, 1, 50);
+
+
+	
+	set_drive_target(-21, 70);
+	wait_pid();
+
+	clamp.set_value(true);
+	pros::delay(500);
+	//clamp rush rings
+	intake_front.move(95);
+	intake_back.move(95);
+
+	set_turn_target(142, 100);
+	wait_pid();
+	pros::delay(500);
+
+
+	set_drive_target(27, 110);
+	wait_pid();
+	pros::delay(500);
+
+	//set_turn_target(115, 100);
+	//wait_pid();
+
+	//set_drive_target(8, 110);
+	//wait_pid();
+	
+	set_turn_target(-7, 100);
+	wait_pid();
+
+	// pick up ring with limit switch
+
+	set_drive_target(13, 110);
+	int i = 0;
+	while (!intake_limit.get_value() && i < 50) {
+		pros::delay(10);
+		i++;
+	}
+	intake_front.move(0);
+	intake_back.move(0);
+	wait_pid();
+
+	set_turn_target(-7, 100);
+	wait_pid();
+
+	set_turn_target(-45, 100);
+	wait_pid();
+//This following movement is heading to the AWP stake
+	set_drive_target(48, 110);
+	wait_pid();
+
+	wall_stake_motor.move_absolute(-2500, 200);
+	pros::delay(1000);
+	wall_stake_motor.move_absolute(-500, 200);
+
+//bar
+	set_turn_target(-155, 100);
+	wait_pid();
+
+	set_drive_target(50, 110);
+	wait_pid();
+
+
+
+}
+
+void RightSoloAWP(){
+	set_drive_constants(0.2, 0.5, 10000, 20, 10, 50);
+	set_turn_constants(4.2, 0.01, 40, 45, 2500, 2, 1, 50);
+
+
+	
+	set_drive_target(-21, 70);
+	wait_pid();
+	clamp.set_value(true);
+	pros::delay(500);
+	//clamp rush rings
+	intake_front.move(95);
+	intake_back.move(95);
+
+	set_turn_target(-142, 100);
+	wait_pid();
+	pros::delay(500);
+
+
+	set_drive_target(27, 110);
+	wait_pid();
+	pros::delay(500);
+	
+/*
+	set_turn_target(-115, 100);
+	wait_pid();
+
+	set_drive_target(8, 110);
+	wait_pid();
+	
+	set_turn_target(7, 100);
+	wait_pid();
+
+	set_drive_target(13, 110);
+	int i = 0;
+	while (!intake_limit.get_value() && i < 50) {
+		pros::delay(10);
+		i++;
+	}
+	intake_front.move(0);
+	intake_back.move(0);
+	wait_pid();
+
+	set_turn_target(7, 100);
+	wait_pid();
+
+	set_turn_target(45, 100);
+	wait_pid();
+//This following movement is heading to the AWP stake
+	set_drive_target(48, 110);
+	wait_pid();
+
+	wall_stake_motor.move_absolute(-2500, 200);
+	pros::delay(1000);
+	wall_stake_motor.move_absolute(-500, 200);
+
+
+//bar
+	set_turn_target(155, 100);
+	wait_pid();
+
+	set_drive_target(50, 110);
+	wait_pid();
+
+*/
+
+}
+
+
+void DreadedAssFuckingCode(){
+
+	set_drive_constants(0.2, 0.5, 10000, 20, 10, 50);
+	set_turn_constants(4.2, 0.01, 40, 45, 2500, 2, 1, 50);
+
+	set_drive_target(120, 110);
+	wait_pid();
+
+
+}
+
+void DreadedAssFuckingCode2(){
+
+	set_drive_constants(0.2, 0.5, 10000, 20, 10, 50);
+	set_turn_constants(4.2, 0.01, 40, 45, 2500, 2, 1, 50);
+
+	set_drive_target(15, 110);
+	wait_pid();
+}
+
 
 /**
  * Runs the user autonomous code. This function will be started in its own task
@@ -113,7 +598,19 @@ void autonomous() {
 	pros::Task pid_task(pid_thread);
 	pros::Task odom_task(odom_thread);
 
-	auto1();
+	set_drive_constants(0.2, 0.5, 10000, 20, 10, 50);
+	set_turn_constants(4.2, 0.01, 40, 45, 100000, 2, 1, 50);
+
+	//RightSoloAWP();
+	//LeftSoloAWP();
+	//DreadedAssFuckingCode();
+	//DreadedAssFuckingCode2();
+
+	turn_to_face(10, 10, 100);
+	wait_pid();
+
+	move_to(10, 10, 100);
+	wait_pid();
 }
 
 /**
@@ -130,15 +627,20 @@ void autonomous() {
  * task, not resume it from where it left off.
  */
 void opcontrol() {
+	pid_enabled = false;
 	pros::Task odom_task(odom_thread);
-
-	left_drive.set_brake_mode_all(pros::E_MOTOR_BRAKE_BRAKE);
-    right_drive.set_brake_mode_all(pros::E_MOTOR_BRAKE_BRAKE);
+	left_drive.set_brake_mode_all(pros::E_MOTOR_BRAKE_COAST);
+    right_drive.set_brake_mode_all(pros::E_MOTOR_BRAKE_COAST);
 
 	bool clamp_state = true;
 	int last_clamp_change = 0;
 
 	bool wall_stake_held = false;
+
+	int last_wall_stake_auto = 0;
+
+	bool doinker_state = true;
+	int last_doinker_change = 0;
 
 	while (true) {
 		pros::screen::print(TEXT_MEDIUM, 1, "X: %f", x);
@@ -156,6 +658,14 @@ void opcontrol() {
 			}
 		}
 
+		if (master.get_digital(DIGITAL_A)) { // clamp
+			if (pros::millis() - last_doinker_change > DOINKER_COOLDOWN) {
+				doinker.set_value(doinker_state);
+				doinker_state = !doinker_state;
+				last_doinker_change = pros::millis();
+			}
+		}
+
 		if (master.get_digital(DIGITAL_R1)) {
 			intake_front.move(INTAKE_VOLTS);
 			intake_back.move(INTAKE_VOLTS);
@@ -169,11 +679,21 @@ void opcontrol() {
 
 		if (master.get_digital(DIGITAL_L2)) {
 			wall_stake_held = true;
-			wall_stake_motor.move(WALLSTAKE_VOLTS);
+			wall_stake_motor.move(-WALLSTAKE_VOLTS);
+			last_wall_stake_auto = pros::millis();
 		} else if (wall_stake_held) {
 			wall_stake_held = false;
 			wall_stake_motor.move(0);
 			wall_stake_motor.move_absolute(0, WALL_STAKE_RPM);
+		}
+
+		if (master.get_digital(DIGITAL_X) && pros::millis() - last_wall_stake_auto > WALL_STAKE_COOLDOWN) {
+			wall_stake_motor.move(-WALLSTAKE_VOLTS);
+		} else if (master.get_digital(DIGITAL_B) && pros::millis() - last_wall_stake_auto > WALL_STAKE_COOLDOWN) {
+			wall_stake_motor.move(WALLSTAKE_VOLTS);
+		} else if (pros::millis() - last_wall_stake_auto > WALL_STAKE_COOLDOWN) {
+		 	wall_stake_motor.move(0);
+			wall_stake_motor.tare_position();
 		}
 
 		pros::delay(10);

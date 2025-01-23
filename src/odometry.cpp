@@ -37,7 +37,7 @@ namespace global {
         x_tracking /= 360.0 / (wheel_diameter * M_PI);
         y_tracking /= 360.0 / (wheel_diameter * M_PI);
         current_rotation = (imu1.get_rotation() + imu2.get_rotation()) / 2;
-        current_rotation_rad = current_rotation * M_PI / 180;
+        current_rotation_rad = current_rotation * M_PI / 180.0;
     }
 
     void position_tracking() {
@@ -45,13 +45,13 @@ namespace global {
         delta_y_tracking = y_tracking - prev_y_tracking;
         delta_rotation_rad = current_rotation_rad - prev_rotation_rad;
 
-        if (fabs(delta_rotation_rad) > 1e-6) {
+        if (fabs(delta_rotation_rad) > 0) {
             if ((delta_y_tracking > 0 && delta_rotation_rad > 0) || (delta_y_tracking < 0 && delta_rotation_rad < 0)) { // if arc to the right
-                delta_x = 2 * sin(delta_rotation_rad / 2) * (delta_x_tracking / delta_rotation_rad + x_offset);
-                delta_y = 2 * sin(delta_rotation_rad / 2) * (delta_y_tracking / delta_rotation_rad + y_offset);
+                delta_x = 2 * sin(delta_rotation_rad / 2.0) * (delta_x_tracking / delta_rotation_rad + x_offset);
+                delta_y = 2 * sin(delta_rotation_rad / 2.0) * (delta_y_tracking / delta_rotation_rad + y_offset);
             } else { // if arc to the left
-                delta_x = 2 * sin(delta_rotation_rad / 2) * (delta_x_tracking / delta_rotation_rad + x_offset);
-                delta_y = 2 * sin(delta_rotation_rad / 2) * (delta_y_tracking / delta_rotation_rad + y_offset);
+                delta_x = 2 * sin(delta_rotation_rad / 2.0) * (delta_x_tracking / delta_rotation_rad + x_offset);
+                delta_y = 2 * sin(delta_rotation_rad / 2.0) * (delta_y_tracking / delta_rotation_rad + y_offset);
             }
         } else { // didn't turn, don't divide by 0
             delta_x = delta_x_tracking;
@@ -63,7 +63,6 @@ namespace global {
 
         x += actual_x_change;
         y += actual_y_change;
-        // coordinate changes with respect to global heading (after rotation matrix applied)
     }
 
     void odom_thread() {

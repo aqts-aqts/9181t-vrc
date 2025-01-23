@@ -52,6 +52,8 @@ namespace global {
     double left_move_start = 0;
     double right_move_start = 0;
     double turn_move_start = 0;
+
+    bool pid_enabled = true;
     
     void set_drive_constants(double p, double d, double timeout, double big_error, double small_error, double error_timeout) {
         left_drive_kP = p;
@@ -255,11 +257,11 @@ namespace global {
 
     void pid_thread() {
         while (true) {
-            pros::screen::print(TEXT_MEDIUM, 1, "Left: %.2f, %.2f", left_error, left_target);
-            pros::screen::print(TEXT_MEDIUM, 2, "Right: %.2f, %.2f", right_error, right_target);
-            pros::screen::print(TEXT_MEDIUM, 3, "Turn: %.2f, %.2f", turn_error, imu_target);
-            pros::screen::print(TEXT_MEDIUM, 4, "Rotation: %.2f", current_rotation);
-            pros::screen::print(TEXT_MEDIUM, 5, "Angle hold: %.2f", current_angle);
+            pros::screen::print(TEXT_MEDIUM, 1, "X: %f", x);
+            pros::screen::print(TEXT_MEDIUM, 2, "Y: %f", y);
+            pros::screen::print(TEXT_MEDIUM, 3, "Rotation: %f", current_rotation);
+            pros::screen::print(TEXT_MEDIUM, 4, "XTrack: %f", horizontal_encoder.get_position() / 100.0);
+            pros::screen::print(TEXT_MEDIUM, 5, "YTrack: %f", vertical_encoder.get_position() / 100.0);
 
             left_power = 0;
             right_power = 0;
@@ -269,7 +271,9 @@ namespace global {
             imu_pid_loop();
             heading_pid_loop();
 
-            set_drive_power(left_power, right_power);
+            if (pid_enabled)
+                set_drive_power(left_power, right_power);
+
             pros::delay(10);
         }
     }

@@ -37,5 +37,7 @@ namespace global {
     extern pros::IMU imu2;
 
     extern pros::adi::DigitalOut clamp;
+    extern pros::adi::DigitalOut doinker;
+    extern pros::adi::DigitalIn intake_limit;
 }
 #endif
