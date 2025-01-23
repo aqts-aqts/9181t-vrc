@@ -15,7 +15,7 @@ namespace global {
     }
 
     double get_drive_tick_per_inch() {
-        const double circumference = WHEEL_DIAMETER * M_PI;
+        const double circumference = wheel_diameter * M_PI;
         double tick_per_revolution = DRIVE_CARTRIDGE_RPM * DRIVE_RATIO;
 
         return tick_per_revolution / circumference;
