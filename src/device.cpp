@@ -1,4 +1,6 @@
 #include "main.h"
+#include "pros/distance.hpp"
+#include "pros/optical.hpp"
 using namespace global;
 
 namespace global {
@@ -29,4 +31,9 @@ namespace global {
     pros::adi::DigitalIn intake_limit(5);
     pros::adi::DigitalOut clamp(8);
     pros::adi::DigitalOut doinker(1);
+
+    pros::Distance distance(16);
+    pros::Optical colour(18);
+
+    int l2_mode = 0;
 }

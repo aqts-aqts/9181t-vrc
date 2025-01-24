@@ -17,8 +17,8 @@ void on_center_button() {}
  * to keep execution time for this mode under a few seconds.
  */
 void initialize() {
-	intake_front.set_brake_mode(pros::E_MOTOR_BRAKE_HOLD);
-	intake_back.set_brake_mode(pros::E_MOTOR_BRAKE_HOLD);
+	intake_front.set_brake_mode(pros::E_MOTOR_BRAKE_COAST);
+	intake_back.set_brake_mode(pros::E_MOTOR_BRAKE_COAST);
 	wall_stake_motor.set_brake_mode(pros::E_MOTOR_BRAKE_HOLD);
 
 	imu1.reset();
@@ -67,13 +67,14 @@ void autonomous() {
 	pros::Task odom_task(odom_thread);
 
 	set_drive_constants(0.2, 0.5, 10000, 20, 10, 50);
-	set_turn_constants(4.2, 0.01, 40, 45, 100000, 2, 1, 50);
+	set_turn_constants(4.2, 0.01, 40, 45, 5000, 2, 1, 50);
 
-	turn_to_face(10, 10, 100);
-	wait_pid();
+	pid_enabled = false;
 
-	move_to(10, 10, 100);
-	wait_pid();
+	paths.push_back(path_data);
+	pros::delay(5000);
+
+	follow_path(0, 40, false);
 }
 
 /**
@@ -98,9 +99,7 @@ void opcontrol() {
 	bool clamp_state = true;
 	int last_clamp_change = 0;
 
-	bool wall_stake_held = false;
-
-	int last_wall_stake_auto = 0;
+	int last_l2 = 0;
 
 	bool doinker_state = true;
 	int last_doinker_change = 0;
@@ -129,7 +128,7 @@ void opcontrol() {
 			}
 		}
 
-		if (master.get_digital(DIGITAL_R1)) {
+		if (master.get_digital(DIGITAL_R1) && (l2_mode == 0 || (l2_mode == 2 && fabs(wall_stake_motor.get_position() + 1000) < 50) || l2_mode == 3 || (l2_mode == 1 && distance.get_distance() > 60))) {
 			intake_front.move(INTAKE_VOLTS);
 			intake_back.move(INTAKE_VOLTS);
 		} else if (master.get_digital(DIGITAL_R2)) {
@@ -140,7 +139,32 @@ void opcontrol() {
 			intake_back.move(0);
 		}
 
-		if (master.get_digital(DIGITAL_L2)) {
+		if (l2_mode == 1 && distance.get_distance() < 60) {
+			l2_mode = 2;
+			pros::Task delay_task([] {
+				pros::delay(500);
+				pros::Task([] {
+					wall_stake_motor.move_relative(-1100, WALL_STAKE_RPM);
+					int i = 0;
+					double start_pos = wall_stake_motor.get_position();
+					while ((fabs(wall_stake_motor.get_position() - start_pos + 1100) < 50) && (i < 100)) {
+						pros::delay(10);
+						i++;
+					}
+					if (i >= 100) { // rotate arm until back to inital pos
+						while (fabs(fmod(wall_stake_encoder.get_position(), 36000)) > 1000) {
+							double error = fmod(wall_stake_encoder.get_position(), 36000);
+							wall_stake_motor.move(error * 0.0006); // arm kp = 0.0006
+							pros::delay(10);
+						}
+						wall_stake_motor.move(0);
+						l2_mode = 0;
+					}
+				});
+			});
+		}
+
+		/*if (master.get_digital(DIGITAL_L2)) {
 			wall_stake_held = true;
 			wall_stake_motor.move(-WALLSTAKE_VOLTS);
 			last_wall_stake_auto = pros::millis();
@@ -148,17 +172,45 @@ void opcontrol() {
 			wall_stake_held = false;
 			wall_stake_motor.move(0);
 			wall_stake_motor.move_absolute(0, WALL_STAKE_RPM);
+		}*/
+
+		if (master.get_digital(DIGITAL_L2)) {
+			if (l2_mode == 0) {
+				l2_mode = 1;
+				last_l2 = pros::millis();
+			} else if (l2_mode == 2 && pros::millis() - last_l2 > WALL_STAKE_COOLDOWN) {
+				l2_mode = 3;
+				last_l2 = pros::millis();
+				wall_stake_motor.move(-WALLSTAKE_VOLTS);
+			}
+		} else if (l2_mode == 3) {
+			l2_mode = 0;
+			last_l2 = pros::millis();
+			pros::Task([] {
+				while (fabs(fmod(wall_stake_encoder.get_position(), 36000)) > 1000) {
+					double error = fmod(wall_stake_encoder.get_position(), 36000);
+					wall_stake_motor.move(-error * 0.0006); // arm kp = 0.0006
+					pros::delay(10);
+				}
+				wall_stake_motor.move(0);
+			});
 		}
 
-		if (master.get_digital(DIGITAL_X) && pros::millis() - last_wall_stake_auto > WALL_STAKE_COOLDOWN) {
+		if (master.get_digital(DIGITAL_X) && l2_mode == 0 && pros::millis() - last_l2 > WALL_STAKE_COOLDOWN) {
 			wall_stake_motor.move(-WALLSTAKE_VOLTS);
-		} else if (master.get_digital(DIGITAL_B) && pros::millis() - last_wall_stake_auto > WALL_STAKE_COOLDOWN) {
+		} else if (master.get_digital(DIGITAL_B) && l2_mode == 0 && pros::millis() - last_l2 > WALL_STAKE_COOLDOWN) {
 			wall_stake_motor.move(WALLSTAKE_VOLTS);
-		} else if (pros::millis() - last_wall_stake_auto > WALL_STAKE_COOLDOWN) {
+		} else if (l2_mode == 0 && pros::millis() - last_l2 > WALL_STAKE_COOLDOWN) {
 		 	wall_stake_motor.move(0);
-			wall_stake_motor.tare_position();
 		}
 
 		pros::delay(10);
+
+
+
+
 	}
+
+
 }
+

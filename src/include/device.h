@@ -4,6 +4,8 @@
 #include "pros/motor_group.hpp"
 #include "pros/motors.hpp"
 #include "pros/rotation.hpp"
+#include "pros/distance.hpp"
+#include "pros/optical.hpp"
 #ifndef devices_h
 #define devices_h
 
@@ -39,5 +41,10 @@ namespace global {
     extern pros::adi::DigitalOut clamp;
     extern pros::adi::DigitalOut doinker;
     extern pros::adi::DigitalIn intake_limit;
+
+    extern pros::Distance distance;
+    extern pros::Optical colour;
+
+    extern int l2_mode;
 }
 #endif

@@ -7,9 +7,9 @@
 
 // odom constants
 #define wheel_diameter 2.75
-#define x_offset -2.0 // calculated: -2.28727
+#define x_offset -3.3497291667 // calculated: -2.28727
  // the perpendicular distance between x tracking wheel and tracking center
-#define y_offset 0.60 // calculated: 0.190666
+#define y_offset 0.6866597222 // calculated: 0.190666
  // the perpendicular distance between y tracking wheel and tracking center
 
 

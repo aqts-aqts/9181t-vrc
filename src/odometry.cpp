@@ -60,8 +60,8 @@ namespace global {
         actual_x_change = cos(prev_rotation_rad) * delta_x + sin(prev_rotation_rad) * delta_y;
         actual_y_change = -sin(prev_rotation_rad) * delta_x + cos(prev_rotation_rad) * delta_y;
 
-        x += actual_x_change;
-        y += actual_y_change;
+        x -= actual_x_change;
+        y -= actual_y_change;
     }
 
     void odom_thread() {
