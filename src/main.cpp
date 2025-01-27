@@ -1,4 +1,5 @@
 #include "main.h"
+#include "include/autonomous.h"
 #include "pros/misc.h"
 using namespace global;
 
@@ -25,6 +26,15 @@ void initialize() {
 	imu1.tare();
 	imu2.reset();
 	imu2.tare();
+
+	while (imu1.is_calibrating() || imu2.is_calibrating()) {
+		pros::delay(10);
+	}
+
+	imu1.set_rotation(init_angle);
+	imu2.set_rotation(init_angle);
+	imu1.set_heading(init_angle);
+	imu2.set_heading(init_angle);
 
 	horizontal_encoder.reset_position();
 	vertical_encoder.reset_position();
@@ -66,15 +76,10 @@ void autonomous() {
 	pros::Task pid_task(pid_thread);
 	pros::Task odom_task(odom_thread);
 
-	set_drive_constants(0.2, 0.5, 10000, 20, 10, 50);
-	set_turn_constants(4.2, 0.01, 40, 45, 5000, 2, 1, 50);
+	set_drive_constants(0.2, 0.5, 4000, 20, 10, 50);
+	set_turn_constants(4.2, 0.01, 40, 45, 2000, 2, 1, 50);
 
-	pid_enabled = false;
-
-	paths.push_back(path_data);
-	pros::delay(5000);
-
-	follow_path(0, 40, false);
+	skills();
 }
 
 /**
@@ -105,11 +110,6 @@ void opcontrol() {
 	int last_doinker_change = 0;
 
 	while (true) {
-		pros::screen::print(TEXT_MEDIUM, 1, "X: %f", x);
-		pros::screen::print(TEXT_MEDIUM, 2, "Y: %f", y);
-		pros::screen::print(TEXT_MEDIUM, 3, "Rotation: %f", current_rotation);
-		pros::screen::print(TEXT_MEDIUM, 4, "XTrack: %f", horizontal_encoder.get_position());
-		pros::screen::print(TEXT_MEDIUM, 5, "YTrack: %f", vertical_encoder.get_position());
 		drive();
 
 		if (master.get_digital(DIGITAL_L1)) { // clamp
@@ -128,7 +128,24 @@ void opcontrol() {
 			}
 		}
 
-		if (master.get_digital(DIGITAL_R1) && (l2_mode == 0 || (l2_mode == 2 && fabs(wall_stake_motor.get_position() + 1000) < 50) || l2_mode == 3 || (l2_mode == 1 && distance.get_distance() > 60))) {
+		// colour sorter
+		/*colour.set_led_pwm(100);
+		if (colour.get_rgb().red > 1000 && distance.get_distance() < 60) {
+			getting_rid_of_ring = true;
+			pros::Task get_rid_of_ring([] {
+				double target = wall_stake_encoder.get_position() + 36000;
+				double error = wall_stake_encoder.get_position() - target;
+				while (fabs(error) > 1000) {
+					error = wall_stake_encoder.get_position() - target;
+					wall_stake_motor.move(error * 0.002); // arm kp colour = 0.002
+					pros::delay(10);
+				}
+				wall_stake_motor.move(0);
+				getting_rid_of_ring = false;
+			});
+		}*/
+
+		if ((master.get_digital(DIGITAL_R1)) && (l2_mode == 0 || (l2_mode == 2 && wall_stake_holding) || l2_mode == 3 || (l2_mode == 1 && distance.get_distance() > 60)) && (!getting_rid_of_ring)) {
 			intake_front.move(INTAKE_VOLTS);
 			intake_back.move(INTAKE_VOLTS);
 		} else if (master.get_digital(DIGITAL_R2)) {
@@ -151,6 +168,7 @@ void opcontrol() {
 						pros::delay(10);
 						i++;
 					}
+					wall_stake_holding = true;
 					if (i >= 100) { // rotate arm until back to inital pos
 						while (fabs(fmod(wall_stake_encoder.get_position(), 36000)) > 1000) {
 							double error = fmod(wall_stake_encoder.get_position(), 36000);
@@ -159,6 +177,7 @@ void opcontrol() {
 						}
 						wall_stake_motor.move(0);
 						l2_mode = 0;
+						wall_stake_holding = false;
 					}
 				});
 			});
@@ -180,6 +199,7 @@ void opcontrol() {
 				last_l2 = pros::millis();
 			} else if (l2_mode == 2 && pros::millis() - last_l2 > WALL_STAKE_COOLDOWN) {
 				l2_mode = 3;
+				wall_stake_holding = false;
 				last_l2 = pros::millis();
 				wall_stake_motor.move(-WALLSTAKE_VOLTS);
 			}
@@ -205,12 +225,6 @@ void opcontrol() {
 		}
 
 		pros::delay(10);
-
-
-
-
 	}
-
-
 }
 

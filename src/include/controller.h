@@ -2,7 +2,7 @@
 #ifndef controller_h
 #define controller_h
 
-#define WALL_STAKE_POS 2000
+#define WALL_STAKE_POS -2000
 #define WALL_STAKE_RESET 500
 
 namespace global {

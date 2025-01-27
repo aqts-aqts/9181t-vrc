@@ -21,7 +21,7 @@ namespace global {
     double left_target = NAN;
     double right_target = NAN;
     double imu_target = NAN;
-    double current_angle = 0;
+    double current_angle = init_angle;
 
     double drive_error_timeout = 0;
     double left_error_start = NAN;
@@ -230,7 +230,7 @@ namespace global {
     }
 
     void heading_pid_loop() {
-        if (!std::isnan(imu_target))
+        if (!std::isnan(imu_target) || std::isnan(left_target) || std::isnan(right_target))
             return;
 
         left_power -= (current_rotation - current_angle) * heading_kP;
@@ -245,7 +245,7 @@ namespace global {
     void wait_drive(double distance) {
         if (std::isnan(left_target) || std::isnan(right_target))
             return;
-        distance *= 360 / (3.25 * M_PI);
+        distance *= 360 / (wheel_diameter * M_PI);
         while ((std::fabs(left_drive.get_position() - left_target) + std::fabs(right_drive.get_position() - right_target)) / 2 < distance)
             pros::delay(10);
     }
@@ -257,12 +257,6 @@ namespace global {
 
     void pid_thread() {
         while (true) {
-            pros::screen::print(TEXT_MEDIUM, 1, "X: %f", x);
-            pros::screen::print(TEXT_MEDIUM, 2, "Y: %f", y);
-            pros::screen::print(TEXT_MEDIUM, 3, "Rotation: %f", current_rotation);
-            pros::screen::print(TEXT_MEDIUM, 4, "XTrack: %f", horizontal_encoder.get_position() / 100.0);
-            pros::screen::print(TEXT_MEDIUM, 5, "YTrack: %f", vertical_encoder.get_position() / 100.0);
-
             left_power = 0;
             right_power = 0;
 

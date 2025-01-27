@@ -71,6 +71,11 @@ namespace global {
         while (true) {
             update_sensors();
             position_tracking();
+
+            pros::screen::print(TEXT_MEDIUM, 1, "X: %f", x);
+            pros::screen::print(TEXT_MEDIUM, 2, "Y: %f", y);
+            pros::screen::print(TEXT_MEDIUM, 3, "Rotation: %f", current_rotation);
+            
             pros::delay(3);
         }
     }

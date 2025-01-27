@@ -36,4 +36,6 @@ namespace global {
     pros::Optical colour(18);
 
     int l2_mode = 0;
+    bool wall_stake_holding = false;
+    bool getting_rid_of_ring = false;
 }

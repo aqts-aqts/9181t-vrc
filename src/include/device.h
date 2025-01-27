@@ -46,5 +46,7 @@ namespace global {
     extern pros::Optical colour;
 
     extern int l2_mode;
+    extern bool wall_stake_holding;
+    extern bool getting_rid_of_ring;
 }
 #endif

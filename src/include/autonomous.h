@@ -2,6 +2,8 @@
 #ifndef autonomous_h
 #define autonomous_h
 
+#define init_angle 27
+
 // pid constants
 #define heading_kP 1
 
@@ -65,5 +67,7 @@ namespace global {
     extern void odom_thread();
     extern void update_sensors();
     extern void position_tracking();
+
+    extern void skills();
 }
 #endif
