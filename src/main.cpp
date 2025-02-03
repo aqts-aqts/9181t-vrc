@@ -109,6 +109,9 @@ void opcontrol() {
 	bool doinker_state = true;
 	int last_doinker_change = 0;
 
+	bool wall_stake_held = false;
+	int last_wall_stake_auto = 0;
+
 	while (true) {
 		drive();
 
@@ -156,7 +159,7 @@ void opcontrol() {
 			intake_back.move(0);
 		}
 
-		if (l2_mode == 1 && distance.get_distance() < 60) {
+		/*if (l2_mode == 1 && distance.get_distance() < 60) {
 			l2_mode = 2;
 			pros::Task delay_task([] {
 				pros::delay(500);
@@ -164,7 +167,7 @@ void opcontrol() {
 					wall_stake_motor.move_relative(-1100, WALL_STAKE_RPM);
 					int i = 0;
 					double start_pos = wall_stake_motor.get_position();
-					while ((fabs(wall_stake_motor.get_position() - start_pos + 1100) < 50) && (i < 100)) {
+					while ((fabs(wall_stake_motor.get_position() - start_pos + 31100) < 50) && (i < 100)) {
 						pros::delay(10);
 						i++;
 					}
@@ -181,19 +184,18 @@ void opcontrol() {
 					}
 				});
 			});
-		}
+		}*/
 
-		/*if (master.get_digital(DIGITAL_L2)) {
+		if (master.get_digital(DIGITAL_L2)) {
 			wall_stake_held = true;
 			wall_stake_motor.move(-WALLSTAKE_VOLTS);
 			last_wall_stake_auto = pros::millis();
 		} else if (wall_stake_held) {
 			wall_stake_held = false;
-			wall_stake_motor.move(0);
 			wall_stake_motor.move_absolute(0, WALL_STAKE_RPM);
-		}*/
+		}
 
-		if (master.get_digital(DIGITAL_L2)) {
+		/*if (master.get_digital(DIGITAL_L2)) {
 			if (l2_mode == 0) {
 				l2_mode = 1;
 				last_l2 = pros::millis();
@@ -214,11 +216,19 @@ void opcontrol() {
 				}
 				wall_stake_motor.move(0);
 			});
-		}
+		}*/
 
-		if (master.get_digital(DIGITAL_X) && l2_mode == 0 && pros::millis() - last_l2 > WALL_STAKE_COOLDOWN) {
+		/*if (master.get_digital(DIGITAL_X) && l2_mode == 0 && pros::millis() - last_l2 > WALL_STAKE_COOLDOWN) {
 			wall_stake_motor.move(-WALLSTAKE_VOLTS);
 		} else if (master.get_digital(DIGITAL_B) && l2_mode == 0 && pros::millis() - last_l2 > WALL_STAKE_COOLDOWN) {
+			wall_stake_motor.move(WALLSTAKE_VOLTS);
+		} else if (l2_mode == 0 && pros::millis() - last_l2 > WALL_STAKE_COOLDOWN) {
+		 	wall_stake_motor.move(0);
+		}*/
+
+		if (master.get_digital(DIGITAL_X) && pros::millis() - last_wall_stake_auto > WALL_STAKE_COOLDOWN) {
+			wall_stake_motor.move(-WALLSTAKE_VOLTS);
+		} else if (master.get_digital(DIGITAL_B) && pros::millis() - last_wall_stake_auto > WALL_STAKE_COOLDOWN) {
 			wall_stake_motor.move(WALLSTAKE_VOLTS);
 		} else if (l2_mode == 0 && pros::millis() - last_l2 > WALL_STAKE_COOLDOWN) {
 		 	wall_stake_motor.move(0);
@@ -227,4 +237,3 @@ void opcontrol() {
 		pros::delay(10);
 	}
 }
-

@@ -29,7 +29,7 @@ namespace global {
 
         pros::delay(500);
         //first ring
-        move_to(30, -13, 85);
+        move_to(29, -13, 85);
         wait_pid();
 
         set_turn_target(113, 90);
@@ -50,12 +50,27 @@ namespace global {
         set_turn_target(172, 90);
         wait_pid();
         //heads over to wallstake
-        move_to(57.6, -55, 85);
+        set_drive_target(10 , 80);
+        while (distance.get_distance() >= 60)
+            pros::delay(10);
+        intake_front.move(0);
+        intake_back.move(0);
         wait_pid();
 
+        printf("X: %f, Y: %f\n", x, y);
 
-        move_to_back(61, -50, 100);
+        pros::delay(1000);
+
+        wall_stake_motor.move_relative(WALL_STAKE_POS, 200);
+        pros::delay(1000);
+        wall_stake_motor.move_relative(-WALL_STAKE_POS, 200);
+        pros::delay(1000);
+
+        move_to_back(64, -51, 100);
         wait_pid();
+
+        intake_front.move(100);
+        intake_back.move(100);
 
         set_turn_target(270, 90);
         wait_pid();
@@ -66,7 +81,6 @@ namespace global {
         set_turn_target(152, 80);
         wait_pid();
 
-        
         move_to(8, -53, 50);
         wait_pid();
 
@@ -79,19 +93,14 @@ namespace global {
         clamp.set_value(false);
         pros::delay(500);
 
-        move_to(8, -22, 50);
-        wait_pid();
-        
-
-        set_turn_target(180, 80);
-        wait_pid();
-
-        move_to_back(10, -30, 100);
-        wait_pid();
-
-
         intake_front.move(0);
         intake_back.move(0); 
+
+        set_drive_target(-20, 100);
+        wait_pid();
+
+        x = 0;
+        y = 0;
 
 //Below is garbage
         /*set_turn_target(290, 90);

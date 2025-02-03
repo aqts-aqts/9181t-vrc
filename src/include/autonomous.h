@@ -2,7 +2,7 @@
 #ifndef autonomous_h
 #define autonomous_h
 
-#define init_angle 27
+#define init_angle 297
 
 // pid constants
 #define heading_kP 1
