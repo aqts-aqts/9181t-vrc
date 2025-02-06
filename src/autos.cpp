@@ -3,6 +3,7 @@ using namespace global;
 
 namespace global {
     void skills() {
+        
         wall_stake_motor.move_relative(WALL_STAKE_POS, 200);
         pros::delay(1000);
         wall_stake_motor.move_relative(-WALL_STAKE_POS, 200);
@@ -10,7 +11,7 @@ namespace global {
 
 
         
-        set_turn_target(320, 90);
+        turn_to_face_back(12.5, -13, 100 );
         wait_pid();
 
         move_to_back(12.5, -13, 100);
@@ -21,36 +22,41 @@ namespace global {
         pros::delay(500);
 
 
-        set_turn_target(100, 90);
+        turn_to_face(29, -15, 85 );
         wait_pid();
 
-       intake_front.move(100);
-       intake_back.move(100); 
+       intake_front.move(115);
+       intake_back.move(115); 
 
         pros::delay(500);
         //first ring
-        move_to(29, -13, 85);
+        move_to(29, -15, 85);
         wait_pid();
 
-        set_turn_target(113, 90);
+        turn_to_face(77, -38, 100);
         wait_pid();
         //picks up the second ring:
-        move_to(80, -36, 100);
+        move_to(77, -38, 100);
         wait_pid();
 
 
         //turns to face the center thing
-        set_turn_target(278, 90);
+        turn_to_face(62, -43, 85);
         wait_pid();
 
-        move_to(64, -35, 85);
+        move_to(62, -43, 85);
         wait_pid();
 
 
-        set_turn_target(172, 90);
+        turn_to_face(62, -53.5, 80);
         wait_pid();
         //heads over to wallstake
-        set_drive_target(10 , 80);
+        intake_front.move(85);
+        intake_back.move(85); 
+        
+        move_to(62,-53.5, 90);
+        wait_pid();
+        //set_drive_target(13.6, 80);
         while (distance.get_distance() >= 60)
             pros::delay(10);
         intake_front.move(0);
@@ -66,41 +72,121 @@ namespace global {
         wall_stake_motor.move_relative(-WALL_STAKE_POS, 200);
         pros::delay(1000);
 
+        intake_front.move(115);
+        intake_back.move(115);
+
         move_to_back(64, -51, 100);
         wait_pid();
 
-        intake_front.move(100);
-        intake_back.move(100);
 
-        set_turn_target(270, 90);
+        turn_to_face(10, -51, 45);
         wait_pid();
 
-        move_to(9, -50, 45);
+        move_to(10, -51, 45);
         wait_pid();
 
-        set_turn_target(152, 80);
+        turn_to_face(8, -53, 70);
         wait_pid();
 
         move_to(8, -53, 50);
         wait_pid();
 
-        set_turn_target(60.5, 80);
+        turn_to_face_back(-12, -65, 85);
         wait_pid();
 
-        move_to_back(5, -53, 100);
+        move_to_back(-12, -65, 100);
         wait_pid();
+
 
         clamp.set_value(false);
         pros::delay(500);
 
+       // set_drive_target(-20, 100);
+       // wait_pid();
+        
         intake_front.move(0);
         intake_back.move(0); 
-
-        set_drive_target(-20, 100);
-        wait_pid();
+        
 
         x = 0;
         y = 0;
+
+        move_to(10, 6, 80);
+        wait_pid();
+
+        turn_to_face_back(8, 77, 70);
+        wait_pid();
+       
+        move_to_back(8, 77, 70);
+        wait_pid();
+
+        clamp.set_value(1);
+        pros::delay(500);
+
+
+        turn_to_face(32, 85, 80);
+        wait_pid();
+        intake_front.move(106);
+        intake_back.move(106); 
+        move_to(32, 85, 80);
+        wait_pid();
+        
+
+
+        turn_to_face(55, 64, 80);
+        wait_pid();
+
+        move_to(55, 64, 100);
+        wait_pid();
+
+        intake_front.move(0);
+        intake_back.move(0); 
+
+        pros::delay(600);
+        
+        turn_to_face_back(32, 85, 80);
+        wait_pid();
+
+        intake_front.move(106);
+        intake_back.move(106); 
+
+
+        move_to_back(32, 85, 80);
+        wait_pid();
+
+        turn_to_face(39, 107, 80);
+        wait_pid();
+
+        move_to(39, 107, 80);
+        wait_pid();
+
+        turn_to_face(3, 103, 80);
+        wait_pid();
+
+        move_to(3, 103, 60);
+        wait_pid();
+
+        turn_to_face(19, 121, 80);
+        wait_pid();
+
+        move_to(19, 121, 70);
+        wait_pid();
+
+        turn_to_face_back(-2, 126, 80);
+        wait_pid();
+        move_to_back(-2, 126, 80);
+        wait_pid();
+
+
+
+
+        
+        intake_front.move(0);
+        intake_back.move(0); 
+       
+
+
+
 
 //Below is garbage
         /*set_turn_target(290, 90);
