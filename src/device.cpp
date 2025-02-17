@@ -15,7 +15,7 @@ namespace global {
     pros::Motor intake_back(-14, pros::v5::MotorGears::green);
     pros::Motor wall_stake_motor(5, pros::v5::MotorGears::green); // 5.5
 
-    pros::MotorGroup left_drive({6, 12, -13});
+    pros::MotorGroup left_drive({6, 12, -11});
     pros::MotorGroup right_drive({-8, 10, -21});
 
     pros::Controller master(pros::E_CONTROLLER_MASTER);
@@ -35,7 +35,6 @@ namespace global {
     pros::Distance distance(16);
     pros::Optical colour(18);
 
-    int l2_mode = 0;
-    bool wall_stake_holding = false;
-    bool getting_rid_of_ring = false;
+    bool holding = true;
+    int inital_angle = 297;
 }

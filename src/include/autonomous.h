@@ -2,8 +2,6 @@
 #ifndef autonomous_h
 #define autonomous_h
 
-#define init_angle 297
-
 // pid constants
 #define heading_kP 1
 
@@ -69,5 +67,14 @@ namespace global {
     extern void position_tracking();
 
     extern void skills();
+    extern void awpBlue();
+    extern void awpRed();
+    extern void awpSoloBlue();
+    extern void awpSoloRed();
+    extern void test();
+
+    extern bool intake_running;
+    extern double intk_volts;
+    extern bool colour_sorted;
 }
 #endif

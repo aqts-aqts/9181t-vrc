@@ -21,7 +21,7 @@ namespace global {
     double left_target = NAN;
     double right_target = NAN;
     double imu_target = NAN;
-    double current_angle = init_angle;
+    double current_angle = inital_angle;
 
     double drive_error_timeout = 0;
     double left_error_start = NAN;

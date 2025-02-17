@@ -45,8 +45,7 @@ namespace global {
     extern pros::Distance distance;
     extern pros::Optical colour;
 
-    extern int l2_mode;
-    extern bool wall_stake_holding;
-    extern bool getting_rid_of_ring;
+    extern bool holding;
+    extern int inital_angle;
 }
 #endif
