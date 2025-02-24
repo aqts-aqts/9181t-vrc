@@ -72,6 +72,9 @@ namespace global {
     extern void awpSoloBlue();
     extern void awpSoloRed();
     extern void test();
+    extern void RedRingSideProvis();
+
+
 
     extern bool intake_running;
     extern double intk_volts;
