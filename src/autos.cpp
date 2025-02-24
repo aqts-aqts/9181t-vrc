@@ -804,4 +804,95 @@ namespace global {
 
         clamp.set_value(0);
     }
+    void RedRingSideProvis(){
+        colour.set_led_pwm(100);
+
+    
+
+        move_to_back(22, 0, 75);
+        wait_pid();
+
+        clamp.set_value(1);
+
+        pros::delay(500);
+
+        intake_back.move(120);
+        intake_front.move(120);
+
+        turn_to_face(27, 17, 90);
+        wait_pid();
+        move_to(27, 17, 100);
+        wait_pid();
+
+        turn_to_face(45, 24.5, 90);
+        wait_pid();
+        move_to(45, 24.5, 95);
+        wait_pid();
+
+        set_drive_target(-8, 90);
+        wait_pid();
+
+        turn_to_face(47, 19, 90);
+        wait_pid();
+        move_to(47, 19, 70);
+        wait_pid();
+
+        
+        turn_to_face(0, -40, 90);
+        wait_pid();
+        
+        pros::Task spin_task([]() {
+            colour_sorted = false;
+            while (true && !colour_sorted) {
+                if (colour.get_rgb().blue > 1000 && distance.get_distance() < 60) {
+                    intake_back.move(0);
+                    intake_front.move(0);
+                    wall_stake_motor.move_relative(-2000, 200);
+                    colour_sorted = true;
+                }
+                pros::delay(10);
+            }
+            pros::delay(500);
+            intake_front.move(120);
+            intake_back.move(120);
+        });
+        
+        move_to(0, -40, 60);
+        wait_pid();
+
+        pros::delay(500);
+        clamp.set_value(0);
+
+        set_drive_target(-9,90);
+        wait_pid();
+        set_drive_target(9,90);
+        wait_pid();
+
+        
+
+        turn_to_face_back(24, -49, 90);
+        wait_pid();
+        move_to_back(24, -49, 60);
+        wait_pid();
+
+        clamp.set_value(1);
+        pros::delay(500);
+
+        turn_to_face(27, -78, 90);
+        wait_pid();
+        move_to(27, -78, 90);
+        wait_pid();
+        wall_stake_motor.move_relative(-600, 200);
+
+
+
+        turn_to_face(42, -54, 90);
+        wait_pid();
+        move_to(42, -54, 60);
+        wait_pid();
+        
+
+        
+
+    };
 }
