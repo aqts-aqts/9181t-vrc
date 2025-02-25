@@ -6,7 +6,8 @@ using namespace global;
 namespace global {
     pros::Motor left_front(6, pros::v5::MotorGears::blue);
     pros::Motor left_mid(12, pros::v5::MotorGears::blue);
-    pros::Motor left_back(-13, pros::v5::MotorGears::blue);
+    pros::Motor left_back(-4, pros::v5::MotorGears::blue);
+    //was -13
     pros::Motor right_front(-8, pros::v5::MotorGears::blue);
     pros::Motor right_mid(10, pros::v5::MotorGears::blue);
     pros::Motor right_back(-21, pros::v5::MotorGears::blue);
@@ -15,7 +16,7 @@ namespace global {
     pros::Motor intake_back(-14, pros::v5::MotorGears::green);
     pros::Motor wall_stake_motor(5, pros::v5::MotorGears::green); // 5.5
 
-    pros::MotorGroup left_drive({6, 12, -11});
+    pros::MotorGroup left_drive({6, 12, -4});
     pros::MotorGroup right_drive({-8, 10, -21});
 
     pros::Controller master(pros::E_CONTROLLER_MASTER);
