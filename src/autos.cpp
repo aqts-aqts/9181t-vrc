@@ -7,6 +7,7 @@ namespace global {
     bool colour_sorted = false;
     double intk_volts = 127;
 
+
     void distance_test() {
         intake_front.move(127);
         intake_back.move(127);
@@ -76,7 +77,7 @@ namespace global {
 
 
         
-        turn_to_face_back(12.5, -13, 100 );
+        turn_to_face_back(12.5, -13, 90);
         wait_pid();
 
         move_to_back(12.5, -13, 100);
@@ -87,7 +88,7 @@ namespace global {
         pros::delay(500);
 
 
-        turn_to_face(29, -15, 85 );
+        turn_to_face(29, -15, 90);
         wait_pid();
 
         intake_running = true;
@@ -97,10 +98,10 @@ namespace global {
 
         pros::delay(500);
         //first ring
-        move_to(29, -15, 85);
+        move_to(29, -15, 100);
         wait_pid();
 
-        turn_to_face(77, -39, 100); // -38
+        turn_to_face(77, -39, 90); // -38
         wait_pid();
         //picks up the second ring:
         move_to(77, -39, 100); // -38
@@ -108,26 +109,26 @@ namespace global {
 
 
         //turns to face the center thing
-        turn_to_face(62, -43, 85);
+        turn_to_face(62, -42, 90);
         wait_pid();
 
-        move_to(62, -43, 85);
+        move_to(62, -42, 100);
         wait_pid();
 
 
-        turn_to_face(62, -54.5, 80);
+        turn_to_face(61, -54, 90);
         wait_pid();
-        //heads over to wallstake
-        intake_front.move(80);
-        intake_back.move(80); 
+        //heads over to first wallstake  
+        intake_front.move(110);
+        intake_back.move(110); 
         intake_running = false;
         intk_volts = 127;
         
-        move_to(62, -54.5, 90);
+        move_to(61, -54, 40);
         wait_pid();
         //set_drive_target(13.6, 80);
         int i = 0;
-        while (distance.get_distance() >= 90 && i <= 80) {
+        while (distance.get_distance() >= 90 && i <= 90) {
             pros::delay(10);
             i++;
         }
@@ -138,7 +139,7 @@ namespace global {
 
         printf("X: %f, Y: %f\n", x, y);
 
-        pros::delay(1000);
+        pros::delay(500);
 
         wall_stake_motor.move_relative(WALL_STAKE_POS, 200);
         pros::delay(1000);
@@ -151,23 +152,24 @@ namespace global {
         intake_running  = true;
 
 
-        move_to_back(64, -47, 100);
+        move_to_back(64, -46, 100);
         wait_pid();
 
 
-        turn_to_face(10, -47, 45);
+        turn_to_face(8, -46, 90);
         wait_pid();
 
-        move_to(10, -47, 45);
+        move_to(8, -46, 50);
         wait_pid();
 
-        turn_to_face(8, -53, 70);
+        turn_to_face(8, -56, 90);
         wait_pid();
 
-        move_to(8, -53, 50);
+        move_to(8, -56, 100);
         wait_pid();
+        //running into wall first time:
 
-        turn_to_face_back(-12, -65, 85);
+        turn_to_face_back(-12, -68, 90);
         wait_pid();
 
         clamp.set_value(false);
@@ -177,10 +179,10 @@ namespace global {
         move_to_back(-12, -65, 50);
         wait_pid();
 
-        set_drive_constants(0.2, 0.5, 4000, 20, 10, 50);
+        set_drive_constants(0.2, 0.5, 3000, 20, 10, 50);
 
 
-        pros::delay(500);
+        pros::delay(250);
 
        // set_drive_target(-20, 100);
        // wait_pid();
@@ -192,73 +194,76 @@ namespace global {
         x = 0;
         y = 0;
 
-        move_to(10, 6, 80);
+        move_to(10, 6, 100);
         wait_pid();
 
-        turn_to_face_back(8, 77, 70);
+        turn_to_face_back(8, 75, 90);
         wait_pid();
        
-        move_to_back(8, 77, 70);
+        move_to_back(8, 75, 75);
         wait_pid();
 
         clamp.set_value(1);
-        pros::delay(500);
+        pros::delay(250);
 
 
-        turn_to_face(32, 85, 80);
+        turn_to_face(32, 85, 90);
         wait_pid();
         intake_front.move(127);
         intake_back.move(127); 
         intk_volts = 127;
         intake_running = true;
-        move_to(32, 85, 80);
+        move_to(32, 85, 100);
         wait_pid();
         
 
 
-        turn_to_face(55, 64, 80);
+        turn_to_face(60, 60, 90);
         wait_pid();
 
-        move_to(55, 64, 100);
+        move_to(60, 60, 100);
         wait_pid();
 
         intake_front.move(0);
         intake_back.move(0); 
         intake_running = false;
 
-        pros::delay(600);
+        pros::delay(100);
         
         //turn_to_face_back(32, 85, 80);
         //wait_pid();
+
+       
+        move_to_back(32, 85, 80);
+        wait_pid();
 
         intake_front.move(127);
         intake_back.move(127); 
         intk_volts = 127;
         intake_running = true;
 
-
-        move_to_back(32, 85, 80);
+        turn_to_face(39, 107, 90);
         wait_pid();
 
-        turn_to_face(39, 107, 80);
+        move_to(39, 107, 100);
         wait_pid();
 
-        move_to(39, 107, 80);
+        turn_to_face(5, 103, 90);
         wait_pid();
 
-        turn_to_face(3, 103, 80);
+        move_to(5, 103, 70);
         wait_pid();
 
-        move_to(3, 103, 60);
+
+        //last ring second side
+        turn_to_face(8, 123, 80);
         wait_pid();
 
-        turn_to_face(5, 112, 80);
+        move_to(8, 123, 70);
         wait_pid();
 
-        move_to(5, 112, 70);
-        wait_pid();
-
-        turn_to_face_back(-2, 126, 80);
+        //turning to ram into the wall
+        turn_to_face_back(-2, 128, 80);
         wait_pid();
 
 
@@ -266,25 +271,25 @@ namespace global {
 
         set_drive_constants(0.2, 0.5, 1000, 20, 10, 50);
 
-        move_to_back(-2, 126, 50);
+        move_to_back(-2, 128, 50);
         wait_pid();
 
-        set_drive_constants(0.2, 0.5, 4000, 20, 10, 50);
+        set_drive_constants(0.2, 0.5, 3000, 20, 10, 50);
 
         x = 0;
         y = 0;
 
        
-        turn_to_face(12, -14, 80);
+        turn_to_face(12, -14, 90);
         wait_pid();
         
-        move_to(12, -14, 70);
+        move_to(12, -14, 100);
         wait_pid();
 
-        turn_to_face(48, -14, 80);
+        turn_to_face(44, -14, 80);
         wait_pid();
         
-        move_to(48, -14, 70);
+        move_to(44, -14, 100);
         wait_pid();
 
         intake_front.move(127);
@@ -292,10 +297,10 @@ namespace global {
         intk_volts = 127;
         intake_running = false;
 
-        turn_to_face(48, 10000, 80);
+        turn_to_face(42, 10000, 80);
         wait_pid();
         
-        move_to(48, -5, 70);
+        move_to(42, -2, 40);
         i = 0;
         while (distance.get_distance() >= 90) {
             pros::delay(10);
@@ -321,6 +326,7 @@ namespace global {
         intk_volts = 127;
         intake_running = false;
 
+
         turn_to_face(83, -37, 80);
         wait_pid();
         
@@ -335,10 +341,10 @@ namespace global {
         intake_running  = false;
         wait_pid();
 
-        turn_to_face_back(103, -63, 80);
+        turn_to_face_back(103, -63, 90);
         wait_pid();
 
-        move_to_back(103, -63, 60);
+        move_to_back(103, -63, 75);
         wait_pid();
 
         pros::delay(500);
@@ -348,27 +354,27 @@ namespace global {
         intk_volts = 127;
         intake_running  = true;
 
-        turn_to_face(105, -18, 80);
+        turn_to_face(105, -18, 90);
         wait_pid();
         
-        move_to(105, -18, 70);
+        move_to(105, -18, 100);
         wait_pid();
         move_to_back(105, -32, 90);
         wait_pid();
 
-        turn_to_face(115, -16, 80);
+        turn_to_face(115, -16, 90);
         wait_pid();
         
-        move_to(115, -16, 70);
+        move_to(115, -16, 100);
         wait_pid();
 
-        move_to_back(105, -32, 90);
+        move_to_back(105, -32, 100);
         wait_pid();
 
-        turn_to_face(82, -13, 80);
+        turn_to_face(82, -13, 90);
         wait_pid();
         
-        move_to(82, -13, 70);
+        move_to(82, -13, 90);
         wait_pid();
 
 
@@ -572,9 +578,9 @@ namespace global {
         intake_back.move(120);
         intake_front.move(120);
 
-        turn_to_face(-33, 17, 90);
+        turn_to_face(-29.5, 17, 90);
         wait_pid();
-        move_to(-33, 17, 90);
+        move_to(-29.5, 17, 90);
         wait_pid();
 
         turn_to_face(-21, 25, 90);
@@ -624,7 +630,88 @@ namespace global {
         turn_to_face(-43.06, -46.75, 90);
         wait_pid();
         move_to(-43.06, -46.75, 90);
-        wait_pid();*/
+        wait_pid();
+        */
+    }
+    void awpSoloRedNew() { // init angle = 90
+        
+        colour.set_led_pwm(100);
+
+        holding = true;
+
+        pros::Task wall_stake_monitor_task([]() {
+            while (true) {
+                if (holding && fabs(wall_stake_motor.get_position()) > 25) {
+                    wall_stake_motor.move(-wall_stake_motor.get_position() * 0.2); // kp = 0.2
+                }
+                pros::delay(10);
+            }
+        });
+        
+        move_to_back(-19, 0, 65);
+        wait_pid();
+
+        clamp.set_value(1);
+
+        pros::delay(500);
+
+        intake_back.move(120);
+        intake_front.move(120);
+
+        turn_to_face(-28.5, -17, 90);
+        wait_pid();
+        move_to(-28.5, -17, 90);
+        wait_pid();
+
+        turn_to_face(-21, -25, 90);
+        wait_pid();
+        move_to(-21, -25, 90);
+        wait_pid();
+
+        pros::Task spin_task([]() {
+            colour_sorted = false;
+            holding = false;
+            while (true && !colour_sorted) {
+                if (colour.get_rgb().red > 1000 && distance.get_distance() < 60) {
+                    intake_back.move(0);
+                    intake_front.move(0);
+                    wall_stake_motor.move_relative(-2000, 200);
+                    colour_sorted = true;
+                }
+                pros::delay(10);
+            }
+            pros::delay(500);
+            intake_front.move(120);
+            intake_back.move(120);
+        });
+
+
+        turn_to_face(10, 36, 90);
+        wait_pid();
+        move_to(10, 36, 50);
+        wait_pid();
+
+        /*clamp.set_value(0);
+
+        turn_to_face_back(-22.82, -49.88, 60);
+        wait_pid();
+        move_to_back(-22.82, -49.88, 65);
+        wait_pid();
+
+        clamp.set_value(1);
+
+        pros::delay(500);
+
+        turn_to_face(-24.3, -73, 90);
+        wait_pid();
+        move_to(-24.3, -73, 90);
+        wait_pid();
+
+        turn_to_face(-43.06, -46.75, 90);
+        wait_pid();
+        move_to(-43.06, -46.75, 90);
+        wait_pid();
+        */
     }
 
     void awpSoloRed() { // init angle = 90
@@ -651,9 +738,9 @@ namespace global {
         intake_back.move(120);
         intake_front.move(120);
 
-        turn_to_face(-33, -17, 90);
+        turn_to_face(-27, -17, 90);
         wait_pid();
-        move_to(-33, -17, 90);
+        move_to(-27, -17, 90);
         wait_pid();
 
         turn_to_face(-21, -25, 90);
@@ -684,7 +771,7 @@ namespace global {
         move_to(10, 36, 50);
         wait_pid();     
 
-        /*
+        
         clamp.set_value(0);
 
         turn_to_face_back(-22.82, 49.88, 60);
@@ -704,7 +791,7 @@ namespace global {
         turn_to_face(-43.06, 46.75, 90);
         wait_pid();
         move_to(-43.06, 46.75, 90);
-        wait_pid();*/
+        wait_pid();
     }
 
     void halfAwpRed() { // init angle = 90
@@ -726,7 +813,7 @@ namespace global {
         move_to(-37, -17, 90);
         wait_pid();
 
-        turn_to_face(-21, -25, 90);
+        /*turn_to_face(-21, -25, 90);
         wait_pid();
         move_to(-21, -25, 90);
         wait_pid();
@@ -754,6 +841,7 @@ namespace global {
         wait_pid();
 
         clamp.set_value(0);
+        */
     }
 
     void halfAwpBlue() { // init angle = 90
