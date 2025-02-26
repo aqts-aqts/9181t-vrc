@@ -44,14 +44,14 @@ namespace global {
     }
 
     void skills() { // init_angle = 297
-         
+        set_drive_constants(0.2, 0.5, 2000, 20, 10, 50);
 
         colour.set_led_pwm(100);
         pros::Task intake_monitor_task([]() {
             int stuck_time = 0;
             while (true) {
                 if (intake_running) {
-                    if (fabs((intake_front.get_actual_velocity() + intake_back.get_actual_velocity()) / 2) < 10) {
+                    if (fabs((intake_front.get_actual_velocity() + intake_back.get_actual_velocity()) / 2) < 20) {
                         stuck_time += 10;
                     } else {
                         stuck_time = 0;
@@ -109,26 +109,24 @@ namespace global {
 
 
         //turns to face the center thing
-        turn_to_face(62, -42, 90);
+        turn_to_face(62, -42.5, 90);
         wait_pid();
 
-        move_to(62, -42, 100);
+        move_to(62, -42.5, 100);
         wait_pid();
 
 
         turn_to_face(61, -54, 90);
         wait_pid();
         //heads over to first wallstake  
-        intake_front.move(110);
-        intake_back.move(110); 
-        intake_running = false;
-        intk_volts = 127;
+        intake_front.move(80);
+        intake_back.move(80); 
+        intake_running = true;
+        intk_volts = 80;
         
         move_to(61, -54, 40);
-        wait_pid();
-        //set_drive_target(13.6, 80);
         int i = 0;
-        while (distance.get_distance() >= 90 && i <= 90) {
+        while (distance.get_distance() >= 90 && i <= 300) {
             pros::delay(10);
             i++;
         }
@@ -136,6 +134,32 @@ namespace global {
         intake_back.move(0);
         intake_running = false;
         wait_pid();
+
+        set_drive_constants(0.2, 0.5, 500, 20, 10, 50);
+
+        set_drive_target(-8, 60);
+        while (distance.get_distance() >= 60 && i <= 350) {
+            intake_front.move(80);
+            intake_back.move(80);
+            pros::delay(10);
+            i++;
+        }
+        intake_front.move(0);
+        intake_back.move(0);
+        wait_pid();
+
+        set_drive_target(8, 60);
+        while (distance.get_distance() >= 60 && i <= 400) {
+            intake_front.move(80);
+            intake_back.move(80);
+            pros::delay(10);
+            i++;
+        }
+        intake_front.move(0);
+        intake_back.move(0);
+        wait_pid();
+
+        set_drive_constants(0.2, 0.5, 2000, 20, 10, 50);
 
         printf("X: %f, Y: %f\n", x, y);
 
@@ -151,10 +175,8 @@ namespace global {
         intk_volts = 127;
         intake_running  = true;
 
-
         move_to_back(64, -46, 100);
         wait_pid();
-
 
         turn_to_face(8, -46, 90);
         wait_pid();
@@ -179,7 +201,7 @@ namespace global {
         move_to_back(-12, -65, 50);
         wait_pid();
 
-        set_drive_constants(0.2, 0.5, 3000, 20, 10, 50);
+        set_drive_constants(0.2, 0.5, 2000, 20, 10, 50);
 
 
         pros::delay(250);
@@ -199,9 +221,13 @@ namespace global {
 
         turn_to_face_back(8, 75, 90);
         wait_pid();
+
+        set_drive_constants(0.2, 0.5, 2000, 20, 10, 50);
        
         move_to_back(8, 75, 75);
         wait_pid();
+
+        set_drive_constants(0.2, 0.5, 2000, 20, 10, 50);
 
         clamp.set_value(1);
         pros::delay(250);
@@ -274,7 +300,7 @@ namespace global {
         move_to_back(-2, 128, 50);
         wait_pid();
 
-        set_drive_constants(0.2, 0.5, 3000, 20, 10, 50);
+        set_drive_constants(0.2, 0.5, 2000, 20, 10, 50);
 
         x = 0;
         y = 0;
@@ -292,23 +318,45 @@ namespace global {
         move_to(44, -14, 100);
         wait_pid();
 
-        intake_front.move(127);
-        intake_back.move(127); 
-        intk_volts = 127;
+        intake_front.move(80);
+        intake_back.move(80); 
+        intk_volts = 80;
         intake_running = false;
 
         turn_to_face(42, 10000, 80);
         wait_pid();
         
         move_to(42, -2, 40);
-        i = 0;
-        while (distance.get_distance() >= 90) {
+        int j = 0;
+        while (distance.get_distance() >= 60 && j <= 300) {
             pros::delay(10);
-            i++;
+            j++;
         }
         intake_front.move(0);
         intake_back.move(0);
         intake_running = false;
+        wait_pid();
+
+        set_drive_target(-8, 60);
+        while (distance.get_distance() >= 60 && j <= 350) {
+            intake_front.move(80);
+            intake_back.move(80);
+            pros::delay(10);
+            j++;
+        }
+        intake_front.move(0);
+        intake_back.move(0);
+        wait_pid();
+
+        set_drive_target(8, 60);
+        while (distance.get_distance() >= 60 && j <= 400) {
+            intake_front.move(80);
+            intake_back.move(80);
+            pros::delay(10);
+            j++;
+        }
+        intake_front.move(0);
+        intake_back.move(0);
         wait_pid();
 
         pros::delay(1000);
@@ -331,10 +379,10 @@ namespace global {
         wait_pid();
         
         move_to(83, -37, 70);
-        i = 0;
-        while (distance.get_distance() >= 90 && i <= 80) {
+        int k = 0;
+        while (distance.get_distance() >= 60 && k <= 300) {
             pros::delay(10);
-            i++;
+            k++;
         }
         intake_front.move(0);
         intake_back.move(0);

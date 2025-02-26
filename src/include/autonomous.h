@@ -73,6 +73,7 @@ namespace global {
     extern void awpSoloRed();
     extern void test();
     extern void RedRingSideProvis();
+    extern void distance_test();
 
 
 

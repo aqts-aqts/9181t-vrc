@@ -19,8 +19,8 @@ void on_center_button() {}
  * to keep execution time for this mode under a few seconds.
  */
 void initialize() {
-	intake_front.set_brake_mode(pros::E_MOTOR_BRAKE_BRAKE);
-	intake_back.set_brake_mode(pros::E_MOTOR_BRAKE_BRAKE);
+	intake_front.set_brake_mode(pros::E_MOTOR_BRAKE_HOLD);
+	intake_back.set_brake_mode(pros::E_MOTOR_BRAKE_HOLD);
 	wall_stake_motor.set_brake_mode(pros::E_MOTOR_BRAKE_BRAKE);
 
 	imu1.reset();
@@ -70,7 +70,7 @@ void competition_initialize() {}
  * will be stopped. Re-enabling the robot will restart the task, not re-start it
  * from where it left off.
  */
-void autonomous() {
+void opcontrol() {
 	left_drive.set_brake_mode_all(pros::E_MOTOR_BRAKE_HOLD);
     right_drive.set_brake_mode_all(pros::E_MOTOR_BRAKE_HOLD);
 
@@ -101,7 +101,7 @@ void autonomous() {
  * operator control task will be stopped. Re-enabling the robot will restart the
  * task, not resume it from where it left off.
  */
-void opcontrol() {
+void autonomous() {
 	intake_running = false;
 	colour_sorted = true;
 	pid_enabled = false;
