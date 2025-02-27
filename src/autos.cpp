@@ -1,263 +1,1058 @@
 #include "main.h"
-#include "include/autonomous.h"
-#include "pros/misc.h"
 #include "pros/rtos.hpp"
 using namespace global;
 
-/**
- * A callback function for LLEMU's center button.
- *
- * When this callback is fired, it will toggle line 2 of the LCD text between
- * "I was pressed!" and nothing.
- */
-void on_center_button() {}
-
-/**
- * Runs initialization code. This occurs as soon as the program is started.
- *
- * All other competition modes are blocked by initialize; it is recommended
- * to keep execution time for this mode under a few seconds.
- */
-void initialize() {
-	intake_front.set_brake_mode(pros::E_MOTOR_BRAKE_HOLD);
-	intake_back.set_brake_mode(pros::E_MOTOR_BRAKE_HOLD);
-	wall_stake_motor.set_brake_mode(pros::E_MOTOR_BRAKE_BRAKE);
-
-	imu1.reset();
-	imu1.tare();
-	imu2.reset();
-	imu2.tare();
-
-	while (imu1.is_calibrating() || imu2.is_calibrating()) {
-		pros::delay(10);
-	}
-
-	imu1.set_rotation(inital_angle);
-	imu2.set_rotation(inital_angle);
-	imu1.set_heading(inital_angle);
-	imu2.set_heading(inital_angle);
-
-	horizontal_encoder.reset_position();
-	vertical_encoder.reset_position();
-}
-
-/**
- * Runs while the robot is in the disabled state of Field Management System or
- * the VEX Competition Switch, following either autonomous or opcontrol. When
- * the robot is enabled, this task will exit.
- */
-void disabled() {}
-
-/**
- * Runs after initialize(), and before autonomous when connected to the Field
- * Management System or the VEX Competition Switch. This is intended for
- * competition-specific initialization routines, such as an autonomous selector
- * on the LCD.
- *
- * This task will exit when the robot is enabled and autonomous or opcontrol
- * starts.
- */
-void competition_initialize() {}
-
-/**
- * Runs the user autonomous code. This function will be started in its own task
- * with the default priority and stack size whenever the robot is enabled via
- * the Field Management System or the VEX Competition Switch in the autonomous
- * mode. Alternatively, this function may be called in initialize or opcontrol
- * for non-competition testing purposes.
- *
- * If the robot is disabled or communications is lost, the autonomous task
- * will be stopped. Re-enabling the robot will restart the task, not re-start it
- * from where it left off.
- */
-void opcontrol() {
-	left_drive.set_brake_mode_all(pros::E_MOTOR_BRAKE_HOLD);
-    right_drive.set_brake_mode_all(pros::E_MOTOR_BRAKE_HOLD);
-
-	pros::Task pid_task(pid_thread);
-	pros::Task odom_task(odom_thread);
-
-	set_drive_constants(0.2, 0.5, 4000, 20, 10, 50);
-	set_turn_constants(4.2, 0.01, 40, 45, 2000, 2, 1, 50);
-
-	skills();
-	//awpBlue();
-	//awpRed();
-	//soloAwpBlue();
-	//soloAwpRed();
-	// in device.cpp, for matches switch inital_angle to 90!! leave at 297 for skills
-}
-
-/**
- * Runs the operator control code. This function will be started in its own task
- * with the default priority and stack size whenever the robot is enabled via
- * the Field Management System or the VEX Competition Switch in the operator
- * control mode.
- *
- * If no competition control is connected, this function will run immediately
- * following initialize().
- *
- * If the robot is disabled or communications is lost, the
- * operator control task will be stopped. Re-enabling the robot will restart the
- * task, not resume it from where it left off.
- */
-void autonomous() {
-	intake_running = false;
-	colour_sorted = true;
-	pid_enabled = false;
-	pros::Task odom_task(odom_thread);
-	left_drive.set_brake_mode_all(pros::E_MOTOR_BRAKE_BRAKE);
-    right_drive.set_brake_mode_all(pros::E_MOTOR_BRAKE_BRAKE);
-
-	bool clamp_state = true;
-	int last_clamp_change = 0;
-
-	int last_l2 = 0;
-	bool y_toggle = false;
-	int last_y = 0;
-
-	bool doinker_state = true;
-	int last_doinker_change = 0;
-
-	bool wall_stake_held = false;
-	int last_wall_stake_auto = 0;
-
-	int intake_speed = INTAKE_VOLTS;
-	int last_seen = 0;
-
-	holding = true;
-
-	while (true) {
-		drive();
-
-		if (holding && fabs(wall_stake_motor.get_position()) > 25)
-			wall_stake_motor.move(-wall_stake_motor.get_position() * 0.2); // kp = 0.2
-
-		if (master.get_digital(DIGITAL_L1)) { // clamp
-			if (pros::millis() - last_clamp_change > CLAMP_COOLDOWN) {
-				clamp.set_value(clamp_state);
-				clamp_state = !clamp_state;
-				last_clamp_change = pros::millis();
-			}
-		}
-
-		if (master.get_digital(DIGITAL_A)) { // doinker
-			if (pros::millis() - last_doinker_change > DOINKER_COOLDOWN) {
-				doinker.set_value(doinker_state);
-				doinker_state = !doinker_state;
-				last_doinker_change = pros::millis();
-			}
-		}
-
-		if (y_toggle && distance.get_distance() < 90) {
-			last_seen = pros::millis();
-		}
-
-		//if ((master.get_digital(DIGITAL_R1)) && (l2_mode == 0 || (l2_mode == 2 && wall_stake_holding) || l2_mode == 3 || (l2_mode == 1 && distance.get_distance() > 60)) && (!getting_rid_of_ring)) {
-		if (master.get_digital(DIGITAL_R1) && (!y_toggle || pros::millis() - last_seen > 500)) {
-			intake_front.move(intake_speed);
-			intake_back.move(intake_speed);
-		} else if (master.get_digital(DIGITAL_R2)) {
-			intake_front.move(-intake_speed);
-			intake_back.move(-intake_speed);
-		} else {
-			intake_front.move(0);
-			intake_back.move(0);
-		}
-
-		/*if (l2_mode == 1 && distance.get_distance() < 60) {
-			l2_mode = 2;
-			pros::Task delay_task([] {
-				pros::delay(500);
-				pros::Task([] {
-					wall_stake_motor.move_relative(-1100, WALL_STAKE_RPM);
-					int i = 0;
-					double start_pos = wall_stake_motor.get_position();
-					while ((fabs(wall_stake_motor.get_position() - start_pos + 31100) < 50) && (i < 100)) {
-						pros::delay(10);
-						i++;
-					}
-					wall_stake_holding = true;
-					if (i >= 100) { // rotate arm until back to inital pos
-						while (fabs(fmod(wall_stake_encoder.get_position(), 36000)) > 1000) {
-							double error = fmod(wall_stake_encoder.get_position(), 36000);
-							wall_stake_motor.move(error * 0.0006); // arm kp = 0.0006
-							pros::delay(10);
-						}
-						wall_stake_motor.move(0);
-						l2_mode = 0;
-						wall_stake_holding = false;
-					}
-				});
-			});
-		}*/
-		
-		if (master.get_digital(DIGITAL_Y) && pros::millis() - last_y > 500) {
-			y_toggle = !y_toggle;
-			intake_speed = y_toggle ? INTAKE_VOLTS : INTAKE_VOLTS;
-			last_y = pros::millis();
-		}
+namespace global {
+    bool intake_running = false;
+    bool colour_sorted = false;
+    double intk_volts = 127;
 
 
-		if (master.get_digital(DIGITAL_L2)) {
-			wall_stake_held = true;
-			holding = false;
-			wall_stake_motor.move(-WALLSTAKE_VOLTS);
-			last_wall_stake_auto = pros::millis();
-		} else if (wall_stake_held) {
-			wall_stake_held = false;
-			wall_stake_motor.move_absolute(0, WALL_STAKE_RPM);
-			pros::Task([] {
-				while (fabs(wall_stake_motor.get_position()) > 50) {
-					pros::delay(10);
-				}
-				holding = true;
-			});
-		}
+    void distance_test() {
+        intake_front.move(127);
+        intake_back.move(127);
+        int i = 0;
+        while (distance.get_distance() >= 90 && i <= 1000000) {
+            pros::delay(10);
+            i++;
+        }
+        intake_front.move(0);
+        intake_back.move(0);
+    }
 
-		/*if (master.get_digital(DIGITAL_L2)) {
-			if (l2_mode == 0) {
-				l2_mode = 1;
-				last_l2 = pros::millis();
-			} else if (l2_mode == 2 && pros::millis() - last_l2 > WALL_STAKE_COOLDOWN) {
-				l2_mode = 3;
-				wall_stake_holding = false;
-				last_l2 = pros::millis();
-				wall_stake_motor.move(-WALLSTAKE_VOLTS);
-			}
-		} else if (l2_mode == 3) {
-			l2_mode = 0;
-			last_l2 = pros::millis();
-			pros::Task([] {
-				while (fabs(fmod(wall_stake_encoder.get_position(), 36000)) > 1000) {
-					double error = fmod(wall_stake_encoder.get_position(), 36000);
-					wall_stake_motor.move(-error * 0.0006); // arm kp = 0.0006
-					pros::delay(10);
-				}
-				wall_stake_motor.move(0);
-			});
-		}*/
+    void colour_sort_test() {
+        colour.set_led_pwm(100);
 
-		/*if (master.get_digital(DIGITAL_X) && l2_mode == 0 && pros::millis() - last_l2 > WALL_STAKE_COOLDOWN) {
-			wall_stake_motor.move(-WALLSTAKE_VOLTS);
-		} else if (master.get_digital(DIGITAL_B) && l2_mode == 0 && pros::millis() - last_l2 > WALL_STAKE_COOLDOWN) {
-			wall_stake_motor.move(WALLSTAKE_VOLTS);
-		} else if (l2_mode == 0 && pros::millis() - last_l2 > WALL_STAKE_COOLDOWN) {
-		 	wall_stake_motor.move(0);
-		}*/
+        pros::Task spin_task([]() {
+            colour_sorted = false;
+            while (true && !colour_sorted) {
+                if (colour.get_rgb().red > 600 && distance.get_distance() < 90) {
+                    intake_back.move(0);
+                    intake_front.move(0);
+                    wall_stake_motor.move_relative(-2600, 200);
+                    colour_sorted = true;
+                }
+                pros::delay(10);
+            }
+            pros::delay(500);
+            //intake_front.move(127);
+            //intake_back.move(127);
+        });
 
-		if (master.get_digital(DIGITAL_B) && pros::millis() - last_wall_stake_auto > WALL_STAKE_COOLDOWN) {
-			holding = false;
-			wall_stake_motor.move(-WALLSTAKE_VOLTS);
-		} else if (master.get_digital(DIGITAL_DOWN) && pros::millis() - last_wall_stake_auto > WALL_STAKE_COOLDOWN) {
-			holding = false;
-			wall_stake_motor.move(WALLSTAKE_VOLTS);
-		} else if (pros::millis() - last_wall_stake_auto > WALL_STAKE_COOLDOWN && !holding) {
-			holding = true;
-		 	wall_stake_motor.move(0);
-			wall_stake_motor.tare_position();
-		}
+        intake_front.move(127);
+        intake_back.move(127);
+    }
 
-		pros::delay(10);
-	}
+    void skills() { // init_angle = 297
+        set_drive_constants(0.2, 0.5, 2000, 20, 10, 50);
+
+        colour.set_led_pwm(100);
+        pros::Task intake_monitor_task([]() {
+            int stuck_time = 0;
+            while (true) {
+                if (intake_running) {
+                    if (fabs((intake_front.get_actual_velocity() + intake_back.get_actual_velocity()) / 2) < 20) {
+                        stuck_time += 10;
+                    } else {
+                        stuck_time = 0;
+                    }
+                    if (stuck_time > 500) {
+                        intake_front.move(-intk_volts);
+                        intake_back.move(-intk_volts);
+                        pros::delay(500);
+                        intake_front.move(intk_volts);
+                        intake_back.move(intk_volts);
+                        stuck_time = 0;
+                    }
+                }
+                pros::delay(10);
+            }
+        });
+
+        
+        wall_stake_motor.move_relative(WALL_STAKE_POS, 200);
+        pros::delay(1000);
+        wall_stake_motor.move_relative(-WALL_STAKE_POS, 200);
+        pros::delay(1000);
+
+
+        
+        turn_to_face_back(12.5, -13, 90);
+        wait_pid();
+
+        move_to_back(12.5, -13, 100);
+        wait_pid();
+
+        //clamps on:
+        clamp.set_value(1);
+        pros::delay(500);
+
+
+        turn_to_face(29, -15, 90);
+        wait_pid();
+
+        intake_running = true;
+        intk_volts = 127;
+        intake_front.move(127);
+        intake_back.move(127); 
+
+        pros::delay(500);
+        //first ring
+        move_to(29, -15, 100);
+        wait_pid();
+
+        turn_to_face(77, -39, 90); // -38
+        wait_pid();
+        //picks up the second ring:
+        move_to(77, -39, 100); // -38
+        wait_pid();
+
+
+        //turns to face the center thing
+        turn_to_face(62, -42.5, 90);
+        wait_pid();
+
+        move_to(62, -42.5, 100);
+        wait_pid();
+
+
+        turn_to_face(60.5, -54, 90);
+        wait_pid();
+        //heads over to first wallstake  
+        intake_front.move(80);
+        intake_back.move(80); 
+        intake_running = true;
+        intk_volts = 80;
+        
+        move_to(60.5, -54, 40);
+        int i = 0;
+        while (distance.get_distance() >= 90 && i <= 300) {
+            pros::delay(10);
+            i++;
+        }
+        intake_front.move(0);
+        intake_back.move(0);
+        intake_running = false;
+        wait_pid();
+
+        set_drive_constants(0.2, 0.5, 500, 20, 10, 50);
+
+        set_drive_target(-8, 60);
+        while (distance.get_distance() >= 60 && i <= 350) {
+            intake_front.move(80);
+            intake_back.move(80);
+            pros::delay(10);
+            i++;
+        }
+        intake_front.move(0);
+        intake_back.move(0);
+        wait_pid();
+
+        set_drive_target(8, 60);
+        while (distance.get_distance() >= 60 && i <= 400) {
+            intake_front.move(80);
+            intake_back.move(80);
+            pros::delay(10);
+            i++;
+        }
+        intake_front.move(0);
+        intake_back.move(0);
+        wait_pid();
+
+        set_drive_constants(0.2, 0.5, 2000, 20, 10, 50);
+
+        printf("X: %f, Y: %f\n", x, y);
+
+        pros::delay(500);
+
+        wall_stake_motor.move_relative(WALL_STAKE_POS, 200);
+        pros::delay(1000);
+        wall_stake_motor.move_relative(-WALL_STAKE_POS, 200);
+        pros::delay(1000);
+
+        intake_front.move(127);
+        intake_back.move(127);
+        intk_volts = 127;
+        intake_running  = true;
+
+        move_to_back(64, -46, 100);
+        wait_pid();
+
+        turn_to_face(8, -46, 90);
+        wait_pid();
+
+        move_to(8, -46, 50);
+        wait_pid();
+
+        turn_to_face(11, -52, 90);
+        wait_pid();
+
+        move_to(11, -52, 100);
+        wait_pid();
+        //running into wall first time:
+
+        turn_to_face_back(-12, -68, 90);
+        wait_pid();
+
+        clamp.set_value(false);
+
+        set_drive_constants(0.2, 0.5, 1000, 20, 10, 50);
+
+        move_to_back(-12, -65, 50);
+        wait_pid();
+
+        set_drive_constants(0.2, 0.5, 2000, 20, 10, 50);
+
+
+        pros::delay(250);
+
+       // set_drive_target(-20, 100);
+       // wait_pid();
+        
+        intake_front.move(0);
+        intake_back.move(0); 
+        intake_running = false;
+
+        x = 0;
+        y = 0;
+
+        move_to(10, 6, 100);
+        wait_pid();
+
+        turn_to_face_back(8, 75, 90);
+        wait_pid();
+
+        set_drive_constants(0.2, 0.5, 2000, 20, 10, 50);
+       
+        move_to_back(8, 75, 75);
+        wait_pid();
+
+        set_drive_constants(0.2, 0.5, 2000, 20, 10, 50);
+
+        clamp.set_value(1);
+        pros::delay(250);
+
+
+        turn_to_face(32, 85, 90);
+        wait_pid();
+        intake_front.move(127);
+        intake_back.move(127); 
+        intk_volts = 127;
+        intake_running = true;
+        move_to(32, 85, 100);
+        wait_pid();
+        
+
+
+        turn_to_face(60, 60, 90);
+        wait_pid();
+
+        move_to(60, 60, 100);
+        wait_pid();
+
+        intake_front.move(0);
+        intake_back.move(0); 
+        intake_running = false;
+
+        pros::delay(100);
+        
+        //turn_to_face_back(32, 85, 80);
+        //wait_pid();
+
+       
+        move_to_back(32, 85, 80);
+        wait_pid();
+
+        intake_front.move(127);
+        intake_back.move(127); 
+        intk_volts = 127;
+        intake_running = true;
+
+        turn_to_face(39, 107, 90);
+        wait_pid();
+
+        move_to(39, 107, 100);
+        wait_pid();
+
+        turn_to_face(5, 103, 90);
+        wait_pid();
+
+        move_to(5, 103, 70);
+        wait_pid();
+
+
+        //last ring second side
+        turn_to_face(8, 123, 80);
+        wait_pid();
+
+        move_to(8, 123, 70);
+        wait_pid();
+
+        //turning to ram into the wall
+        turn_to_face_back(-2, 128, 80);
+        wait_pid();
+
+
+        clamp.set_value(0);
+
+        set_drive_constants(0.2, 0.5, 1000, 20, 10, 50);
+
+        move_to_back(-2, 128, 50);
+        wait_pid();
+
+        set_drive_constants(0.2, 0.5, 2000, 20, 10, 50);
+
+        x = 0;
+        y = 0;
+
+       
+        turn_to_face(12, -14, 90);
+        wait_pid();
+        
+        move_to(12, -14, 100);
+        wait_pid();
+
+        turn_to_face(44, -14, 80);
+        wait_pid();
+        
+        move_to(44, -14, 100);
+        wait_pid();
+
+        intake_front.move(80);
+        intake_back.move(80); 
+        intk_volts = 80;
+        intake_running = false;
+
+        turn_to_face(42, 10000, 80);
+        wait_pid();
+        
+        move_to(42, -2, 40);
+        int j = 0;
+        while (distance.get_distance() >= 60 && j <= 300) {
+            pros::delay(10);
+            j++;
+        }
+        intake_front.move(0);
+        intake_back.move(0);
+        intake_running = false;
+        wait_pid();
+
+        set_drive_target(-8, 60);
+        while (distance.get_distance() >= 60 && j <= 350) {
+            intake_front.move(80);
+            intake_back.move(80);
+            pros::delay(10);
+            j++;
+        }
+        intake_front.move(0);
+        intake_back.move(0);
+        wait_pid();
+
+        set_drive_target(8, 60);
+        while (distance.get_distance() >= 60 && j <= 400) {
+            intake_front.move(80);
+            intake_back.move(80);
+            pros::delay(10);
+            j++;
+        }
+        intake_front.move(0);
+        intake_back.move(0);
+        wait_pid();
+
+        pros::delay(1000);
+
+        wall_stake_motor.move_relative(WALL_STAKE_POS, 200);
+        pros::delay(1000);
+        wall_stake_motor.move_relative(-WALL_STAKE_POS, 200);
+        pros::delay(1000);
+
+        move_to_back(48, -15, 80);
+        wait_pid();
+
+        intake_front.move(127);
+        intake_back.move(127);
+        intk_volts = 127;
+        intake_running = false;
+
+
+        turn_to_face(83, -37, 80);
+        wait_pid();
+        
+        move_to(83, -37, 70);
+        int k = 0;
+        while (distance.get_distance() >= 60 && k <= 300) {
+            pros::delay(10);
+            k++;
+        }
+        intake_front.move(0);
+        intake_back.move(0);
+        intake_running  = false;
+        wait_pid();
+
+        turn_to_face_back(103, -63, 90);
+        wait_pid();
+
+        move_to_back(103, -63, 75);
+        wait_pid();
+
+        
+        clamp.set_value(1);
+        pros::delay(500);
+        intake_front.move(127);
+        intake_back.move(127);
+        intk_volts = 127;
+        intake_running  = true;
+
+        turn_to_face(105, -18, 90);
+        wait_pid();
+        
+        move_to(105, -18, 100);
+        wait_pid();
+        move_to_back(105, -32, 90);
+        wait_pid();
+
+        turn_to_face(115, -16, 90);
+        wait_pid();
+        
+        move_to(115, -16, 100);
+        wait_pid();
+
+        move_to_back(105, -32, 100);
+        wait_pid();
+
+        turn_to_face(82, -13, 90);
+        wait_pid();
+        
+        move_to(82, -13, 90);
+        wait_pid();
+
+
+        intake_front.move(0);
+        intake_back.move(0); 
+        intake_running  = false;
+
+        turn_to_face(-8, 115, 90);
+        wait_pid();
+
+        move_to(-8, 115, 90);
+        wait_pid();
+
+        turn_to_face_back(9, 129, 90);
+        wait_pid();
+
+        clamp.set_value(0);
+
+        
+
+        
+
+
+
+
+
+
+        
+
+        
+       
+
+
+
+
+//Below is garbage
+        /*set_turn_target(290, 90);
+        wait_pid();
+
+        move_to(66, -42, 100);
+        wait_pid();
+
+        intake_front.move(0);
+        intake_back.move(0); 
+        */
+       /* set_turn_target(177, 90);
+        wait_pid();
+
+        move_to(46, -42, 85);
+        wait_pid();
+        
+        move_to_back(46, -56, 100);
+        wait_pid();
+
+        set_turn_target(270, 90);
+        wait_pid();
+
+        move_to(15, -31, 100);
+        wait_pid(); */
+        
+        /*
+
+        set_drive_constants(0.2, 0.5, 500, 20, 10, 50);
+
+        move_to_back(-9.24, -11.82, 100);
+        wait_pid();
+
+        set_drive_constants(0.2, 0.5, 4000, 20, 10, 50);
+
+        clamp.set_value(1);
+        pros::delay(500);
+
+        set_turn_target(180, 90);
+        wait_pid();
+
+        intake_front.move(127);
+        intake_back.move(127);
+
+        move_to(-29.24, -11.82, 100);
+        wait_pid();
+
+        set_turn_target(197, 90);
+        wait_pid();
+
+        move_to(-67.49, -23.515, 100);
+        wait_pid();
+        */
+    }
+
+    void awpBlue() { // init angle = 90
+         
+
+        colour.set_led_pwm(100);
+        
+        move_to_back(-27, 0, 70);
+        wait_pid();
+        clamp.set_value(1);
+
+        pros::delay(500);
+
+        //turn to 
+        turn_to_face(-22, -19, 90);
+        wait_pid();
+
+        intake_front.move(115);
+        intake_back.move(115); 
+        move_to(-22, -19, 50);
+        wait_pid();
+
+        pros::Task spin_task([]() {
+            colour_sorted = false;
+            while (true && !colour_sorted) {
+                if (colour.get_rgb().red > 1000 && distance.get_distance() < 60) {
+                    intake_back.move(0);
+                    intake_front.move(0);
+                    wall_stake_motor.move_relative(-2000, 200);
+                    colour_sorted = true;
+                }
+                pros::delay(10);
+            }
+            pros::delay(500);
+            intake_front.move(127);
+            intake_back.move(127);
+        });
+
+        turn_to_face(2, 36, 70);
+        wait_pid();
+        move_to(2, 20, 50);
+        wait_pid();
+
+        turn_to_face_back(-10, 30, 70);
+        wait_pid();
+        intake_front.move(0);
+        intake_back.move(0);
+
+        move_to(8, 30, 70);
+        wait_pid();
+    
+        turn_to_face(-24, 26, 70);
+        wait_pid();
+
+        move_to(-22, 26, 60);
+        wait_pid();
+    }
+
+    void awpRed() { // init angle = 90
+         
+
+        colour.set_led_pwm(100);
+        
+        move_to_back(-27, 0, 70);
+        wait_pid();
+        clamp.set_value(1);
+
+        pros::delay(500);
+
+        //turn to 
+        turn_to_face(-22, 19, 90);
+        wait_pid();
+
+        intake_front.move(115);
+        intake_back.move(115); 
+        move_to(-22, 19, 50);
+        wait_pid();
+
+        pros::Task spin_task([]() {
+            colour_sorted = false;
+            while (true && !colour_sorted) {
+                if (colour.get_rgb().blue > 1000 && distance.get_distance() < 60) {
+                    intake_back.move(0);
+                    intake_front.move(0);
+                    wall_stake_motor.move_relative(-2000, 200);
+                    colour_sorted = true;
+                }
+                pros::delay(10);
+            }
+            pros::delay(500);
+            intake_front.move(120);
+            intake_back.move(120);
+        });
+
+        turn_to_face(2, -36, 70);
+        wait_pid();
+        move_to(2, -20, 50);
+        wait_pid();
+
+        turn_to_face_back(-10, -30, 70);
+        wait_pid();
+        intake_front.move(0);
+        intake_back.move(0);
+
+        move_to(8, -30, 70);
+        wait_pid();
+    
+        turn_to_face(-24, -26, 70);
+        wait_pid();
+        
+        move_to(-22, -26, 60);
+        wait_pid();
+    }
+
+    void awpSoloBlue() { // init angle = 90
+        
+        colour.set_led_pwm(100);
+
+        holding = true;
+
+        pros::Task wall_stake_monitor_task([]() {
+            while (true) {
+                if (holding && fabs(wall_stake_motor.get_position()) > 25) {
+                    wall_stake_motor.move(-wall_stake_motor.get_position() * 0.2); // kp = 0.2
+                }
+                pros::delay(10);
+            }
+        });
+        
+        move_to_back(-19, 0, 65);
+        wait_pid();
+
+        clamp.set_value(1);
+
+        pros::delay(500);
+
+        intake_back.move(120);
+        intake_front.move(120);
+
+        turn_to_face(-29.5, 17, 90);
+        wait_pid();
+        move_to(-29.5, 17, 90);
+        wait_pid();
+
+        turn_to_face(-21, 25, 90);
+        wait_pid();
+        move_to(-21, 25, 90);
+        wait_pid();
+
+        pros::Task spin_task([]() {
+            colour_sorted = false;
+            holding = false;
+            while (true && !colour_sorted) {
+                if (colour.get_rgb().red > 1000 && distance.get_distance() < 60) {
+                    intake_back.move(0);
+                    intake_front.move(0);
+                    wall_stake_motor.move_relative(-2000, 200);
+                    colour_sorted = true;
+                }
+                pros::delay(10);
+            }
+            pros::delay(500);
+            intake_front.move(120);
+            intake_back.move(120);
+        });
+
+
+        turn_to_face(10, -36, 90);
+        wait_pid();
+        move_to(10, -36, 50);
+        wait_pid();
+
+        /*clamp.set_value(0);
+
+        turn_to_face_back(-22.82, -49.88, 60);
+        wait_pid();
+        move_to_back(-22.82, -49.88, 65);
+        wait_pid();
+
+        clamp.set_value(1);
+
+        pros::delay(500);
+
+        turn_to_face(-24.3, -73, 90);
+        wait_pid();
+        move_to(-24.3, -73, 90);
+        wait_pid();
+
+        turn_to_face(-43.06, -46.75, 90);
+        wait_pid();
+        move_to(-43.06, -46.75, 90);
+        wait_pid();
+        */
+    }
+    void awpSoloRedNew() { // init angle = 90
+        
+        colour.set_led_pwm(100);
+
+        holding = true;
+
+        pros::Task wall_stake_monitor_task([]() {
+            while (true) {
+                if (holding && fabs(wall_stake_motor.get_position()) > 25) {
+                    wall_stake_motor.move(-wall_stake_motor.get_position() * 0.2); // kp = 0.2
+                }
+                pros::delay(10);
+            }
+        });
+        
+        move_to_back(-19, 0, 65);
+        wait_pid();
+
+        clamp.set_value(1);
+
+        pros::delay(500);
+
+        intake_back.move(120);
+        intake_front.move(120);
+
+        turn_to_face(-28.5, -17, 90);
+        wait_pid();
+        move_to(-28.5, -17, 90);
+        wait_pid();
+
+        turn_to_face(-21, -25, 90);
+        wait_pid();
+        move_to(-21, -25, 90);
+        wait_pid();
+
+        pros::Task spin_task([]() {
+            colour_sorted = false;
+            holding = false;
+            while (true && !colour_sorted) {
+                if (colour.get_rgb().red > 1000 && distance.get_distance() < 60) {
+                    intake_back.move(0);
+                    intake_front.move(0);
+                    wall_stake_motor.move_relative(-2000, 200);
+                    colour_sorted = true;
+                }
+                pros::delay(10);
+            }
+            pros::delay(500);
+            intake_front.move(120);
+            intake_back.move(120);
+        });
+
+
+        turn_to_face(10, 36, 90);
+        wait_pid();
+        move_to(10, 36, 50);
+        wait_pid();
+
+        /*clamp.set_value(0);
+
+        turn_to_face_back(-22.82, -49.88, 60);
+        wait_pid();
+        move_to_back(-22.82, -49.88, 65);
+        wait_pid();
+
+        clamp.set_value(1);
+
+        pros::delay(500);
+
+        turn_to_face(-24.3, -73, 90);
+        wait_pid();
+        move_to(-24.3, -73, 90);
+        wait_pid();
+
+        turn_to_face(-43.06, -46.75, 90);
+        wait_pid();
+        move_to(-43.06, -46.75, 90);
+        wait_pid();
+        */
+    }
+
+    void awpSoloRed() { // init angle = 90
+        colour.set_led_pwm(100);
+
+        holding = true;
+
+        pros::Task wall_stake_monitor_task([]() {
+            while (true) {
+                if (holding && fabs(wall_stake_motor.get_position()) > 25) {
+                    wall_stake_motor.move(-wall_stake_motor.get_position() * 0.2); // kp = 0.2
+                }
+                pros::delay(10);
+            }
+        });
+        
+        move_to_back(-19, 0, 65);
+        wait_pid();
+
+        clamp.set_value(1);
+
+        pros::delay(500);
+
+        intake_back.move(120);
+        intake_front.move(120);
+
+        turn_to_face(-27, -17, 90);
+        wait_pid();
+        move_to(-27, -17, 90);
+        wait_pid();
+
+        turn_to_face(-21, -25, 90);
+        wait_pid();
+        move_to(-21, -25, 90);
+        wait_pid();
+
+        pros::Task spin_task([]() {
+            colour_sorted = false;
+            holding = false;
+            while (true && !colour_sorted) {
+                if (colour.get_rgb().blue > 1000 && distance.get_distance() < 60) {
+                    intake_back.move(0);
+                    intake_front.move(0);
+                    wall_stake_motor.move_relative(-2000, 200);
+                    colour_sorted = true;
+                }
+                pros::delay(10);
+            }
+            pros::delay(500);
+            intake_front.move(120);
+            intake_back.move(120);
+        });
+
+
+        turn_to_face(10, 36, 90);
+        wait_pid();
+        move_to(10, 36, 50);
+        wait_pid();     
+
+        
+        clamp.set_value(0);
+
+        turn_to_face_back(-22.82, 49.88, 60);
+        wait_pid();
+        move_to_back(-22.82, 49.88, 65);
+        wait_pid();
+
+        clamp.set_value(1);
+
+        pros::delay(500);
+
+        turn_to_face(-24.3, 73, 90);
+        wait_pid();
+        move_to(-24.3, 73, 90);
+        wait_pid();
+
+        turn_to_face(-43.06, 46.75, 90);
+        wait_pid();
+        move_to(-43.06, 46.75, 90);
+        wait_pid();
+    }
+
+    void halfAwpRed() { // init angle = 90
+
+        colour.set_led_pwm(100);
+        
+        move_to_back(-19, 0, 65);
+        wait_pid();
+
+        clamp.set_value(1);
+
+        pros::delay(500);
+
+        intake_back.move(120);
+        intake_front.move(120);
+
+        turn_to_face(-37, -17, 90);
+        wait_pid();
+        move_to(-37, -17, 90);
+        wait_pid();
+
+        /*turn_to_face(-21, -25, 90);
+        wait_pid();
+        move_to(-21, -25, 90);
+        wait_pid();
+
+        pros::Task spin_task([]() {
+            colour_sorted = false;
+            while (true && !colour_sorted) {
+                if (colour.get_rgb().blue > 1000 && distance.get_distance() < 60) {
+                    intake_back.move(0);
+                    intake_front.move(0);
+                    wall_stake_motor.move_relative(-2000, 200);
+                    colour_sorted = true;
+                }
+                pros::delay(10);
+            }
+            pros::delay(500);
+            intake_front.move(120);
+            intake_back.move(120);
+        });
+
+
+        turn_to_face(10, 36, 90);
+        wait_pid();
+        move_to(10, 36, 50);
+        wait_pid();
+
+        clamp.set_value(0);
+        */
+    }
+
+    void halfAwpBlue() { // init angle = 90
+
+        colour.set_led_pwm(100);
+        
+        move_to_back(-19, 0, 65);
+        wait_pid();
+
+        clamp.set_value(1);
+
+        pros::delay(500);
+
+        intake_back.move(120);
+        intake_front.move(120);
+
+        turn_to_face(-37, 17, 90);
+        wait_pid();
+        move_to(-37, 17, 90);
+        wait_pid();
+
+        turn_to_face(-21, 25, 90);
+        wait_pid();
+        move_to(-21, 25, 90);
+        wait_pid();
+
+        pros::Task spin_task([]() {
+            colour_sorted = false;
+            while (true && !colour_sorted) {
+                if (colour.get_rgb().red > 1000 && distance.get_distance() < 60) {
+                    intake_back.move(0);
+                    intake_front.move(0);
+                    wall_stake_motor.move_relative(-2000, 200);
+                    colour_sorted = true;
+                }
+                pros::delay(10);
+            }
+            pros::delay(500);
+            intake_front.move(120);
+            intake_back.move(120);
+        });
+
+
+        turn_to_face(10, -36, 90);
+        wait_pid();
+        move_to(10, -36, 50);
+        wait_pid();
+
+        clamp.set_value(0);
+    }
+    void RedRingSideProvis(){
+        colour.set_led_pwm(100);
+
+    
+
+        move_to_back(22, 0, 75);
+        wait_pid();
+
+        clamp.set_value(1);
+
+        pros::delay(500);
+
+        intake_back.move(120);
+        intake_front.move(120);
+
+        turn_to_face(27, 17, 90);
+        wait_pid();
+        move_to(27, 17, 100);
+        wait_pid();
+
+        turn_to_face(45, 24.5, 90);
+        wait_pid();
+        move_to(45, 24.5, 95);
+        wait_pid();
+
+        set_drive_target(-8, 90);
+        wait_pid();
+
+        turn_to_face(47, 19, 90);
+        wait_pid();
+        move_to(47, 19, 70);
+        wait_pid();
+
+        
+        turn_to_face(0, -40, 90);
+        wait_pid();
+        
+        pros::Task spin_task([]() {
+            colour_sorted = false;
+            while (true && !colour_sorted) {
+                if (colour.get_rgb().blue > 1000 && distance.get_distance() < 60) {
+                    intake_back.move(0);
+                    intake_front.move(0);
+                    wall_stake_motor.move_relative(-2000, 200);
+                    colour_sorted = true;
+                }
+                pros::delay(10);
+            }
+            pros::delay(500);
+            intake_front.move(120);
+            intake_back.move(120);
+        });
+        
+        move_to(0, -40, 60);
+        wait_pid();
+
+        pros::delay(500);
+        clamp.set_value(0);
+
+        set_drive_target(-9,90);
+        wait_pid();
+        set_drive_target(9,90);
+        wait_pid();
+
+        
+
+        turn_to_face_back(24, -49, 90);
+        wait_pid();
+        move_to_back(24, -49, 60);
+        wait_pid();
+
+        clamp.set_value(1);
+        pros::delay(500);
+
+        turn_to_face(27, -78, 90);
+        wait_pid();
+        move_to(27, -78, 90);
+        wait_pid();
+        wall_stake_motor.move_relative(-600, 200);
+
+
+
+        turn_to_face(42, -54, 90);
+        wait_pid();
+        move_to(42, -54, 60);
+        wait_pid();
+        
+
+        
+
+    };
 }
