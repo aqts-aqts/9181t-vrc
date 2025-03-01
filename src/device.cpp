@@ -37,5 +37,6 @@ namespace global {
     pros::Optical colour(18);
 
     bool holding = true;
+    bool holding_up = false;
     int inital_angle = 297;
 }

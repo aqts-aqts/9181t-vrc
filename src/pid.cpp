@@ -69,6 +69,20 @@ namespace global {
         drive_error_timeout = (error_timeout != -1) ? error_timeout: drive_error_timeout;
     }
 
+    void set_drive_timeout(int frames) {
+        // @ 30fps
+        
+        double time = frames * (1.0 / 30) * 1000 * 1.5; // 1.5 factor needed for some reason
+        drive_timeout = time;
+    }
+
+    void set_turn_timeout(int frames) {
+        // @ 30fps
+
+        double time = frames * (1.0 / 30) * 1000 * 2.0; // 2.0 factor needed for some reason
+        turn_timeout = time;
+    }
+
     void set_turn_constants(double p, double i, double d, double s_i, double timeout, double big_error, double small_error, double error_timeout) {
         turn_kP = p;
         turn_kI = i;

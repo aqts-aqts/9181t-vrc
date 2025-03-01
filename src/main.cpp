@@ -70,7 +70,7 @@ void competition_initialize() {}
  * will be stopped. Re-enabling the robot will restart the task, not re-start it
  * from where it left off.
  */
-void opcontrol() {
+void autonomous() {
 	left_drive.set_brake_mode_all(pros::E_MOTOR_BRAKE_HOLD);
     right_drive.set_brake_mode_all(pros::E_MOTOR_BRAKE_HOLD);
 
@@ -81,10 +81,14 @@ void opcontrol() {
 	set_turn_constants(4.2, 0.01, 40, 45, 2000, 2, 1, 50);
 
 	skills();
+	//BlueRingSideProvis();
 	//awpBlue();
 	//awpRed();
 	//soloAwpBlue();
 	//soloAwpRed();
+	//RedRingSideProvis();
+	
+
 	// in device.cpp, for matches switch inital_angle to 90!! leave at 297 for skills
 }
 
@@ -101,7 +105,7 @@ void opcontrol() {
  * operator control task will be stopped. Re-enabling the robot will restart the
  * task, not resume it from where it left off.
  */
-void autonomous() {
+void opcontrol() {
 	intake_running = false;
 	colour_sorted = true;
 	pid_enabled = false;
@@ -122,15 +126,19 @@ void autonomous() {
 	bool wall_stake_held = false;
 	int last_wall_stake_auto = 0;
 
+	bool wall_stake_up = false;
+	int last_wall_stake_up = 0;
+
 	int intake_speed = INTAKE_VOLTS;
 	int last_seen = 0;
 
 	holding = true;
+	holding_up = false;
 
 	while (true) {
 		drive();
 
-		if (holding && fabs(wall_stake_motor.get_position()) > 25)
+		if (holding && !holding_up && fabs(wall_stake_motor.get_position()) > 25)
 			wall_stake_motor.move(-wall_stake_motor.get_position() * 0.2); // kp = 0.2
 
 		if (master.get_digital(DIGITAL_L1)) { // clamp
@@ -163,6 +171,25 @@ void autonomous() {
 		} else {
 			intake_front.move(0);
 			intake_back.move(0);
+		}
+
+		if (master.get_digital(DIGITAL_UP) && pros::millis() - last_wall_stake_up > 500) {
+			if (!wall_stake_up) {
+				holding_up = true;
+				wall_stake_motor.move(0);
+				wall_stake_motor.move_relative(-1200, WALL_STAKE_RPM-40);
+			} else {
+				double distance = fmod(wall_stake_motor.get_position(), 2700);
+				wall_stake_motor.move(0);
+				wall_stake_motor.move_relative(-2700 - distance, WALL_STAKE_RPM-40);
+				pros::Task([] {
+					pros::delay(1000);
+					wall_stake_motor.tare_position();
+					holding_up = false;
+				});
+			}
+			wall_stake_up = !wall_stake_up;
+			last_wall_stake_up = pros::millis();
 		}
 
 		/*if (l2_mode == 1 && distance.get_distance() < 60) {
@@ -246,13 +273,13 @@ void autonomous() {
 		 	wall_stake_motor.move(0);
 		}*/
 
-		if (master.get_digital(DIGITAL_B) && pros::millis() - last_wall_stake_auto > WALL_STAKE_COOLDOWN) {
+		if (master.get_digital(DIGITAL_B) && pros::millis() - last_wall_stake_auto > WALL_STAKE_COOLDOWN && !holding_up) {
 			holding = false;
 			wall_stake_motor.move(-WALLSTAKE_VOLTS);
-		} else if (master.get_digital(DIGITAL_DOWN) && pros::millis() - last_wall_stake_auto > WALL_STAKE_COOLDOWN) {
+		} else if (master.get_digital(DIGITAL_DOWN) && pros::millis() - last_wall_stake_auto > WALL_STAKE_COOLDOWN && !holding_up) {
 			holding = false;
 			wall_stake_motor.move(WALLSTAKE_VOLTS);
-		} else if (pros::millis() - last_wall_stake_auto > WALL_STAKE_COOLDOWN && !holding) {
+		} else if (pros::millis() - last_wall_stake_auto > WALL_STAKE_COOLDOWN && !holding && !holding_up) {
 			holding = true;
 		 	wall_stake_motor.move(0);
 			wall_stake_motor.tare_position();

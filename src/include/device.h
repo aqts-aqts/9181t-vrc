@@ -46,6 +46,7 @@ namespace global {
     extern pros::Optical colour;
 
     extern bool holding;
+    extern bool holding_up;
     extern int inital_angle;
 }
 #endif

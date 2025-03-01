@@ -73,9 +73,13 @@ namespace global {
     extern void awpSoloRed();
     extern void test();
     extern void RedRingSideProvis();
+    extern void BlueRingSideProvis();
     extern void distance_test();
+    extern void skills1();
 
 
+    extern void set_drive_timeout(int frames);
+    extern void set_turn_timeout(int frames);
 
     extern bool intake_running;
     extern double intk_volts;
